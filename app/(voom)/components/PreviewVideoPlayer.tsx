@@ -11,6 +11,7 @@ import {
 	IoContractOutline,
 } from "react-icons/io5";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { Button } from "../../components/ui/button";
 
 const SEEK_STEP_S = 5;
 const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
@@ -209,10 +210,12 @@ export const PreviewVideoPlayer = forwardRef<
 				{/* Controles y tiempo */}
 				<div className="flex items-center justify-between gap-2">
 					<div className="flex items-center gap-1">
-						<button
+						<Button
 							type="button"
+							variant="ghost"
+							size="icon"
 							onClick={togglePlay}
-							className="rounded p-1.5 text-neutral-200 hover:bg-neutral-700 hover:text-white"
+							className="h-10 w-10 text-neutral-200 hover:bg-neutral-700 hover:text-white [&_svg]:h-5 [&_svg]:w-5"
 							aria-label={isPlaying ? "Pausar" : "Reproducir"}
 						>
 							{isPlaying ? (
@@ -220,29 +223,35 @@ export const PreviewVideoPlayer = forwardRef<
 							) : (
 								<IoPlay className="h-5 w-5" />
 							)}
-						</button>
-						<button
+						</Button>
+						<Button
 							type="button"
+							variant="ghost"
+							size="icon"
 							onClick={() => seek(-SEEK_STEP_S)}
-							className="flex items-center gap-0.5 rounded p-1.5 text-neutral-200 hover:bg-neutral-700 hover:text-white"
+							className="h-10 w-10 gap-0.5 text-neutral-200 hover:bg-neutral-700 hover:text-white [&_svg]:h-5 [&_svg]:w-5"
 							aria-label={`Retroceder ${SEEK_STEP_S} segundos`}
 						>
 							<IoPlaySkipBackOutline className="h-5 w-5" />
 							<span className="text-xs font-medium">5</span>
-						</button>
-						<button
+						</Button>
+						<Button
 							type="button"
+							variant="ghost"
+							size="icon"
 							onClick={() => seek(SEEK_STEP_S)}
-							className="flex items-center gap-0.5 rounded p-1.5 text-neutral-200 hover:bg-neutral-700 hover:text-white"
+							className="h-10 w-10 gap-0.5 text-neutral-200 hover:bg-neutral-700 hover:text-white [&_svg]:h-5 [&_svg]:w-5"
 							aria-label={`Avanzar ${SEEK_STEP_S} segundos`}
 						>
 							<IoPlaySkipForwardOutline className="h-5 w-5" />
 							<span className="text-xs font-medium">5</span>
-						</button>
+						</Button>
 						{/* Volumen: icono (mute/unmute) + slider para subir/bajar */}
 						<div className="flex items-center gap-1">
-							<button
+							<Button
 								type="button"
+								variant="ghost"
+								size="icon"
 								onClick={() => {
 									if (muted) {
 										setMuted(false);
@@ -251,7 +260,7 @@ export const PreviewVideoPlayer = forwardRef<
 										setMuted(true);
 									}
 								}}
-								className="rounded p-1.5 text-neutral-200 hover:bg-neutral-700 hover:text-white"
+								className="h-10 w-10 text-neutral-200 hover:bg-neutral-700 hover:text-white [&_svg]:h-5 [&_svg]:w-5"
 								aria-label={muted ? "Activar sonido" : "Silenciar"}
 							>
 								{muted || volume === 0 ? (
@@ -259,7 +268,7 @@ export const PreviewVideoPlayer = forwardRef<
 								) : (
 									<IoVolumeHighOutline className="h-5 w-5" />
 								)}
-							</button>
+							</Button>
 							<input
 								type="range"
 								min={0}
@@ -278,16 +287,17 @@ export const PreviewVideoPlayer = forwardRef<
 					<div className="flex items-center gap-0.5">
 						{/* Velocidad */}
 						<div className="relative">
-							<button
+							<Button
 								type="button"
+								variant="ghost"
 								onClick={() => setShowSpeedMenu((s) => !s)}
-								className="rounded px-2 py-1 text-sm text-neutral-300 hover:bg-neutral-700 hover:text-white"
+								className="h-9 text-neutral-300 hover:bg-neutral-700 hover:text-white"
 								aria-expanded={showSpeedMenu}
 								aria-haspopup="true"
 								aria-label="Velocidad de reproducción"
 							>
 								{playbackRate}x
-							</button>
+							</Button>
 							{showSpeedMenu && (
 								<>
 									<div
@@ -301,21 +311,22 @@ export const PreviewVideoPlayer = forwardRef<
 									>
 										{SPEED_OPTIONS.map((rate) => (
 											<li key={rate} role="none">
-												<button
+												<Button
 													type="button"
+													variant="ghost"
 													role="menuitem"
 													onClick={() => {
 														setPlaybackRate(rate);
 														setShowSpeedMenu(false);
 													}}
-													className={`w-full px-4 py-2 text-left text-sm ${
+													className={`h-auto w-full justify-start px-4 py-2 text-sm font-normal ${
 														playbackRate === rate
-															? "bg-red-600 text-white"
+															? "bg-red-600 text-white hover:bg-red-600 hover:text-white"
 															: "text-neutral-200 hover:bg-neutral-700"
 													}`}
 												>
 													{rate}x
-												</button>
+												</Button>
 											</li>
 										))}
 									</ul>
@@ -323,10 +334,12 @@ export const PreviewVideoPlayer = forwardRef<
 							)}
 						</div>
 						{canPiP && (
-							<button
+							<Button
 								type="button"
+								variant="ghost"
+								size="icon"
 								onClick={togglePiP}
-								className="rounded p-1.5 text-neutral-200 hover:bg-neutral-700 hover:text-white"
+								className="h-10 w-10 text-neutral-200 hover:bg-neutral-700 hover:text-white [&_svg]:h-5 [&_svg]:w-5"
 								aria-label="Picture-in-picture"
 							>
 								{/* Icono PiP: ventana pequeña dentro de una grande */}
@@ -340,12 +353,14 @@ export const PreviewVideoPlayer = forwardRef<
 									<rect x="2" y="2" width="14" height="14" rx="1" strokeWidth={2} />
 									<rect x="8" y="8" width="14" height="14" rx="1" strokeWidth={2} />
 								</svg>
-							</button>
+							</Button>
 						)}
-						<button
+						<Button
 							type="button"
+							variant="ghost"
+							size="icon"
 							onClick={toggleFullscreen}
-							className="rounded p-1.5 text-neutral-200 hover:bg-neutral-700 hover:text-white"
+							className="h-10 w-10 text-neutral-200 hover:bg-neutral-700 hover:text-white [&_svg]:h-5 [&_svg]:w-5"
 							aria-label={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
 						>
 							{isFullscreen ? (
@@ -353,7 +368,7 @@ export const PreviewVideoPlayer = forwardRef<
 							) : (
 								<IoExpandOutline className="h-5 w-5" />
 							)}
-						</button>
+						</Button>
 					</div>
 				</div>
 			</div>

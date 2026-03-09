@@ -1,17 +1,18 @@
-"use client";
+'use client';
 
-import type { RecordingResult } from "@voom/types/recorder";
+import type { RecordingResult } from '@voom/types/recorder';
+import { Button } from '../../../components/ui/button';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
-} from "../../../components/ui/dropdown-menu";
+} from '../../../components/ui/dropdown-menu';
 
 function formatDuration(s: number): string {
 	const m = Math.floor(s / 60);
 	const sec = Math.floor(s % 60);
-	return `${m}:${sec.toString().padStart(2, "0")}`;
+	return `${m}:${sec.toString().padStart(2, '0')}`;
 }
 
 export interface VersionDropdownProps {
@@ -30,36 +31,54 @@ export function VersionDropdown({
 }: VersionDropdownProps) {
 	return (
 		<div className="relative flex">
-			<button
+			<Button
 				type="button"
+				variant="secondary"
+				size="lg"
 				onClick={onEditVideo}
-				className="flex min-w-[10rem] items-center justify-center gap-2 rounded-l-lg border-2 border-border bg-muted px-6 py-2.5 font-semibold text-foreground hover:bg-muted/80"
+				className="min-w-40 rounded-r-none border-2 border-border"
 			>
 				Editar video
-			</button>
+			</Button>
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
-					<button
+					<Button
 						type="button"
-						className="rounded-r-lg border-2 border-l-0 border-border bg-muted px-2 py-2.5 text-foreground hover:bg-muted/80"
+						variant="secondary"
+						size="icon"
+						className="h-10 w-10 rounded-l-none border-2 border-l-0 border-border [&_svg]:h-5 [&_svg]:w-5"
 						aria-expanded="false"
 						aria-haspopup="true"
 						aria-label="Elegir versión del video"
 					>
-						<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+						<svg
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							aria-hidden
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M19 9l-7 7-7-7"
+							/>
 						</svg>
-					</button>
+					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end" className="min-w-[200px]">
 					{versions.map((v, i) => (
 						<DropdownMenuItem
 							key={i}
 							onClick={() => onSelectVersion(i)}
-							className={i === currentVersionIndex ? "bg-muted font-medium" : ""}
+							className={
+								i === currentVersionIndex ? 'bg-muted font-medium' : ''
+							}
 						>
-							{i === 0 ? "Original" : `Edición ${i}`}
-							<span className="ml-2 text-muted-foreground">({formatDuration(v.durationSeconds)})</span>
+							{i === 0 ? 'Original' : `Edición ${i}`}
+							<span className="ml-2 text-muted-foreground">
+								({formatDuration(v.durationSeconds)})
+							</span>
 						</DropdownMenuItem>
 					))}
 				</DropdownMenuContent>

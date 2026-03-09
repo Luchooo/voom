@@ -171,7 +171,7 @@ export function CameraOverlay({
             type="button"
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-white hover:bg-white/20"
+            className="h-8 w-8 text-white hover:bg-white/20"
             onClick={() => setSizeAndPosition("small")}
             title="Pequeño (222px)"
           >
@@ -181,7 +181,7 @@ export function CameraOverlay({
             type="button"
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-white hover:bg-white/20"
+            className="h-8 w-8 text-white hover:bg-white/20"
             onClick={() => setSizeAndPosition("large")}
             title="Grande (400px)"
           >
@@ -191,7 +191,7 @@ export function CameraOverlay({
             type="button"
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-white hover:bg-white/20"
+            className="h-8 w-8 text-white hover:bg-white/20"
             onClick={() => setSizeAndPosition("fullscreen")}
             title="Pantalla completa"
           >
@@ -201,7 +201,7 @@ export function CameraOverlay({
             type="button"
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-white hover:bg-white/20"
+            className="h-8 w-8 text-white hover:bg-white/20"
             onClick={() => setSizeAndPosition("avatar")}
             title="Avatar (icono)"
           >

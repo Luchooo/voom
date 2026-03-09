@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	PreviewVideoPlayer,
 	type PreviewVideoPlayerHandle,
-} from "@voom/components/PreviewVideoPlayer";
-import { trimWebm } from "@voom/lib/trimVideo";
+} from '@voom/components/PreviewVideoPlayer';
+import { trimWebm } from '@voom/lib/trimVideo';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -15,15 +15,16 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-} from "../../../components/ui/alert-dialog";
-import { Spinner } from "../../../components/ui/spinner";
+} from '../../../components/ui/alert-dialog';
+import { Button } from '../../../components/ui/button';
+import { Spinner } from '../../../components/ui/spinner';
 
 const MIN_SEGMENT_S = 1;
 
 function formatTime(s: number): string {
 	const m = Math.floor(s / 60);
 	const sec = Math.floor(s % 60);
-	return `${m}:${sec.toString().padStart(2, "0")}`;
+	return `${m}:${sec.toString().padStart(2, '0')}`;
 }
 
 export interface TrimEditorStepProps {
@@ -50,7 +51,9 @@ export function TrimEditorStep({
 }: TrimEditorStepProps) {
 	const playerRef = useRef<PreviewVideoPlayerHandle>(null);
 	const [startTime, setStartTime] = useState(0);
-	const [endTime, setEndTime] = useState(Math.max(MIN_SEGMENT_S, durationSeconds));
+	const [endTime, setEndTime] = useState(
+		Math.max(MIN_SEGMENT_S, durationSeconds),
+	);
 	const [isTrimming, setIsTrimming] = useState(false);
 	const [trimError, setTrimError] = useState<string | null>(null);
 	const [confirmOpen, setConfirmOpen] = useState(false);
@@ -63,19 +66,31 @@ export function TrimEditorStep({
 	}, [durationSeconds]);
 
 	const duration = Math.max(0, durationSeconds);
-	const startClamped = Math.max(0, Math.min(startTime, duration - MIN_SEGMENT_S));
-	const endClamped = Math.max(startClamped + MIN_SEGMENT_S, Math.min(endTime, duration));
+	const startClamped = Math.max(
+		0,
+		Math.min(startTime, duration - MIN_SEGMENT_S),
+	);
+	const endClamped = Math.max(
+		startClamped + MIN_SEGMENT_S,
+		Math.min(endTime, duration),
+	);
 
-	const setStart = useCallback((v: number) => {
-		const s = Math.max(0, Math.min(v, duration - MIN_SEGMENT_S));
-		setStartTime(s);
-		setEndTime((prev) => (prev <= s ? s + MIN_SEGMENT_S : prev));
-	}, [duration]);
-	const setEnd = useCallback((v: number) => {
-		const e = Math.max(MIN_SEGMENT_S, Math.min(v, duration));
-		setEndTime(e);
-		setStartTime((prev) => (prev >= e ? e - MIN_SEGMENT_S : prev));
-	}, [duration]);
+	const setStart = useCallback(
+		(v: number) => {
+			const s = Math.max(0, Math.min(v, duration - MIN_SEGMENT_S));
+			setStartTime(s);
+			setEndTime((prev) => (prev <= s ? s + MIN_SEGMENT_S : prev));
+		},
+		[duration],
+	);
+	const setEnd = useCallback(
+		(v: number) => {
+			const e = Math.max(MIN_SEGMENT_S, Math.min(v, duration));
+			setEndTime(e);
+			setStartTime((prev) => (prev >= e ? e - MIN_SEGMENT_S : prev));
+		},
+		[duration],
+	);
 
 	// Previsualización: al cambiar inicio, buscar en el video
 	useEffect(() => {
@@ -91,7 +106,9 @@ export function TrimEditorStep({
 			const newDuration = endClamped - startClamped;
 			onApplyTrim(trimmed, newDuration);
 		} catch (err) {
-			setTrimError(err instanceof Error ? err.message : "Error al recortar el video");
+			setTrimError(
+				err instanceof Error ? err.message : 'Error al recortar el video',
+			);
 		} finally {
 			setIsTrimming(false);
 		}
@@ -107,7 +124,11 @@ export function TrimEditorStep({
 					Recorta el inicio o el final. Mín. {MIN_SEGMENT_S} s.
 				</p>
 				<div className="w-full max-w-4xl overflow-hidden rounded-xl border border-border bg-neutral-900 shadow-2xl">
-					<PreviewVideoPlayer ref={playerRef} src={videoUrl} className="h-auto w-full" />
+					<PreviewVideoPlayer
+						ref={playerRef}
+						src={videoUrl}
+						className="h-auto w-full"
+					/>
 				</div>
 			</div>
 
@@ -121,7 +142,9 @@ export function TrimEditorStep({
 					)}
 					<div className="grid gap-4 sm:grid-cols-2">
 						<label className="flex items-center gap-3 text-sm">
-							<span className="w-12 shrink-0 text-muted-foreground">Inicio</span>
+							<span className="w-12 shrink-0 text-muted-foreground">
+								Inicio
+							</span>
 							<input
 								type="range"
 								min={0}
@@ -153,24 +176,31 @@ export function TrimEditorStep({
 					</div>
 					<div className="flex flex-wrap items-center justify-between gap-3">
 						<span className="text-sm text-muted-foreground">
-							Tramo seleccionado: <strong className="text-foreground">{formatTime(segmentDuration)}</strong>
+							Tramo seleccionado:{' '}
+							<strong className="text-foreground">
+								{formatTime(segmentDuration)}
+							</strong>
 						</span>
 						<div className="flex flex-wrap items-center gap-3">
 							<AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-								<button
+								<Button
 									type="button"
-									onClick={() => setConfirmOpen(true)}
+									variant="orange"
+									size="lg"
 									disabled={isTrimming}
-									className="flex min-w-40 items-center justify-center gap-2 rounded-lg bg-orange-600 px-6 py-2.5 font-semibold text-white hover:bg-orange-500 disabled:opacity-70"
+									onClick={() => setConfirmOpen(true)}
+									className="min-w-40"
 								>
 									{isTrimming && <Spinner size="sm" className="shrink-0" />}
-									{isTrimming ? "Recortando…" : "Aplicar recorte"}
-								</button>
+									{isTrimming ? 'Recortando…' : 'Aplicar recorte'}
+								</Button>
 								<AlertDialogContent>
 									<AlertDialogHeader>
 										<AlertDialogTitle>¿Aplicar recorte?</AlertDialogTitle>
 										<AlertDialogDescription>
-											Se creará una nueva versión del video con el tramo seleccionado. El original y las ediciones anteriores seguirán disponibles en la pestaña del botón Editar video.
+											Se creará una nueva versión del video con el tramo
+											seleccionado. El original y las ediciones anteriores
+											seguirán disponibles en la pestaña del botón Editar video.
 										</AlertDialogDescription>
 									</AlertDialogHeader>
 									<AlertDialogFooter>
@@ -181,14 +211,16 @@ export function TrimEditorStep({
 									</AlertDialogFooter>
 								</AlertDialogContent>
 							</AlertDialog>
-							<button
-								type="button"
-								onClick={onCancel}
-								disabled={isTrimming}
-								className="rounded-lg border-2 border-border bg-muted px-6 py-2.5 font-semibold text-foreground hover:bg-muted/80 disabled:opacity-70"
+<Button
+							type="button"
+							variant="secondary"
+							size="lg"
+							disabled={isTrimming}
+							onClick={onCancel}
+							className="border-2 border-border"
 							>
 								Cancelar
-							</button>
+							</Button>
 						</div>
 					</div>
 				</div>
