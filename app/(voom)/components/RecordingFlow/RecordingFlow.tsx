@@ -26,6 +26,7 @@ import {
 } from '@voom/types/recorder';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Spinner } from "../../../components/ui/spinner";
+import { PreviewVideoPlayer } from '@voom/components/PreviewVideoPlayer';
 import {
 	CircularCameraPreview,
 	CountdownStep,
@@ -35,6 +36,7 @@ import {
 	TrimEditorStep,
 	WelcomeStep,
 } from './steps';
+import { VersionDropdown } from './VersionDropdown';
 
 const DEFAULT_OPTIONS: RecorderOptions = {
 	screen: true,
@@ -142,12 +144,15 @@ export function RecordingFlow({ showMp4Option = false }: { showMp4Option?: boole
 	const {
 		error,
 		recordingResult,
+		versions,
+		currentVersionIndex,
+		setCurrentVersion,
 		startRecording,
 		stopRecording,
 		downloadRecording,
 		isConvertingToMp4,
 		reset,
-		replaceResult,
+		addTrimmedVersion,
 		status,
 		camera,
 		mic,
@@ -260,10 +265,10 @@ export function RecordingFlow({ showMp4Option = false }: { showMp4Option?: boole
 
 	const handleApplyTrim = useCallback(
 		(trimmedBlob: Blob, newDurationSeconds: number) => {
-			replaceResult(trimmedBlob, newDurationSeconds);
+			addTrimmedVersion(trimmedBlob, newDurationSeconds);
 			setFlowState('ready');
 		},
-		[replaceResult],
+		[addTrimmedVersion],
 	);
 
 	const handleCancelTrim = useCallback(() => {
@@ -301,11 +306,9 @@ export function RecordingFlow({ showMp4Option = false }: { showMp4Option?: boole
 						<p className="text-sm text-foreground">
 							Grabación lista ({recordingResult.durationSeconds.toFixed(1)} s)
 						</p>
-						<div className="w-full max-w-4xl overflow-hidden rounded-xl border border-border bg-card shadow-2xl">
-							<video
+						<div className="w-full max-w-4xl">
+							<PreviewVideoPlayer
 								src={recordingResult.url}
-								controls
-								playsInline
 								className="h-auto w-full"
 							/>
 						</div>
@@ -362,13 +365,12 @@ export function RecordingFlow({ showMp4Option = false }: { showMp4Option?: boole
 									</button>
 								)}
 							</div>
-							<button
-								type="button"
-								onClick={() => setFlowState('trim')}
-								className="rounded-lg border-2 border-border bg-muted px-6 py-2.5 font-semibold text-foreground hover:bg-muted/80"
-							>
-								Editar video
-							</button>
+							<VersionDropdown
+								versions={versions}
+								currentVersionIndex={currentVersionIndex}
+								onSelectVersion={setCurrentVersion}
+								onEditVideo={() => setFlowState('trim')}
+							/>
 							<button
 								type="button"
 								onClick={handleReset}

@@ -44,9 +44,13 @@ export function useRecorder(
   overlayRef?: MutableRefObject<CameraOverlayState | null>
 ) {
   const [status, setStatus] = useState<RecorderStatus>("idle");
-  const [recordingResult, setRecordingResult] = useState<RecordingResult | null>(null);
+  /** Lista de versiones: [original, edición 1, edición 2, ...]. El usuario puede volver a cualquiera. */
+  const [versions, setVersions] = useState<RecordingResult[]>([]);
+  const [currentVersionIndex, setCurrentVersionIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isConvertingToMp4, setIsConvertingToMp4] = useState(false);
+
+  const recordingResult = versions.length > 0 ? versions[currentVersionIndex] ?? versions[0] : null;
 
   const screen = useScreenCapture();
   const mic = useMicrophone();
@@ -62,6 +66,8 @@ export function useRecorder(
   const startTimeRef = useRef<number>(0);
   const mixedAudioCloseRef = useRef<(() => void) | null>(null);
   const stopRecordingRef = useRef<() => void>(() => {});
+  /** Referencia al stream de getDisplayMedia para detenerlo en cuanto el usuario pulse Detener y que el navegador oculte "Dejar de compartir". */
+  const screenStreamRef = useRef<MediaStream | null>(null);
 
   const stopAllStreams = useCallback(() => {
     screen.stopCapture();
@@ -75,7 +81,8 @@ export function useRecorder(
       overlayState?: CameraOverlayState | null;
     }) => {
       setError(null);
-      setRecordingResult(null);
+      setVersions([]);
+      setCurrentVersionIndex(0);
       setStatus("requesting");
       chunksRef.current = [];
 
@@ -97,6 +104,7 @@ export function useRecorder(
         setStatus("idle");
         return;
       }
+      screenStreamRef.current = screenStream;
 
       // Cuando el usuario pulsa "Dejar de compartir" en la barra del navegador, la pista termina.
       // El stream puede haberse obtenido en RecordingFlow (sin callback), por eso registramos aquí siempre.
@@ -170,10 +178,16 @@ export function useRecorder(
       stopAllTracks(finalStream);
       stopAllTracks(screenStream);
       if (micStream) stopAllTracks(micStream);
+      // Asegurar que el stream de pantalla quede liberado por si no se detuvo en stopRecording
+      if (screenStreamRef.current) {
+        screenStreamRef.current.getTracks().forEach((t) => t.stop());
+        screenStreamRef.current = null;
+      }
       const durationSeconds = (Date.now() - startTimeRef.current) / 1000;
       const blob = new Blob(chunksRef.current, { type: mimeType.split(";")[0] });
       const url = URL.createObjectURL(blob);
-      setRecordingResult({ blob, url, durationSeconds });
+      setVersions([{ blob, url, durationSeconds }]);
+      setCurrentVersionIndex(0);
       setStatus("ready");
     };
 
@@ -192,7 +206,12 @@ export function useRecorder(
 
   const stopRecording = useCallback(() => {
     setStatus("stopping");
-    // Detener primero la captura de pantalla para que Chrome oculte la barra "Dejar de compartir" de inmediato
+    // Detener de inmediato todas las pistas del stream de pantalla para que el navegador oculte "Dejar de compartir / Ocultar"
+    const screenStream = screenStreamRef.current;
+    if (screenStream) {
+      screenStream.getTracks().forEach((t) => t.stop());
+      screenStreamRef.current = null;
+    }
     stopAllStreams();
     const recorder = mediaRecorderRef.current;
     if (recorder && recorder.state !== "inactive") {
@@ -226,29 +245,35 @@ export function useRecorder(
   }, [recordingResult]);
 
   const reset = useCallback(() => {
-    if (recordingResult?.url) URL.revokeObjectURL(recordingResult.url);
-    setRecordingResult(null);
+    setVersions((prev) => {
+      prev.forEach((v) => URL.revokeObjectURL(v.url));
+      return [];
+    });
+    setCurrentVersionIndex(0);
     setStatus("idle");
     setError(null);
-  }, [recordingResult]);
+  }, []);
 
-  /** Reemplaza la grabación actual por un blob recortado (tras "Editar video" → Aplicar recorte). */
-  const replaceResult = useCallback((blob: Blob, durationSeconds: number) => {
-    if (recordingResult?.url) URL.revokeObjectURL(recordingResult.url);
+  /** Añade una nueva versión (recorte) a la lista y la selecciona. No se pierde el original. */
+  const addTrimmedVersion = useCallback((blob: Blob, durationSeconds: number) => {
     const url = URL.createObjectURL(blob);
-    setRecordingResult({ blob, url, durationSeconds });
-  }, [recordingResult?.url]);
+    setVersions((prev) => [...prev, { blob, url, durationSeconds }]);
+    setCurrentVersionIndex((prev) => prev + 1);
+  }, []);
 
   return {
     status,
     error: error ?? screen.error ?? mic.error ?? camera.error,
     recordingResult,
+    versions,
+    currentVersionIndex,
+    setCurrentVersion: setCurrentVersionIndex,
     startRecording,
     stopRecording,
     downloadRecording,
     isConvertingToMp4,
     reset,
-    replaceResult,
+    addTrimmedVersion,
     screen,
     mic,
     camera,
