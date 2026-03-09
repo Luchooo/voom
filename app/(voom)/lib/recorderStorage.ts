@@ -3,6 +3,26 @@ import type { CameraOverlaySize } from "@voom/types/recorder";
 
 const KEY_OPTIONS = "voom-recorder-options";
 const KEY_CAMERA_OVERLAY = "voom-camera-overlay";
+const KEY_CAMERA_UNAVAILABLE = "voom-camera-unavailable";
+
+export function getCameraUnavailable(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return localStorage.getItem(KEY_CAMERA_UNAVAILABLE) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function setCameraUnavailable(unavailable: boolean): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (unavailable) localStorage.setItem(KEY_CAMERA_UNAVAILABLE, "1");
+    else localStorage.removeItem(KEY_CAMERA_UNAVAILABLE);
+  } catch {
+    // ignore
+  }
+}
 
 export interface StoredCameraOverlay {
   position: { x: number; y: number };
@@ -73,6 +93,7 @@ export function clearRecorderStorage(): void {
   try {
     localStorage.removeItem(KEY_OPTIONS);
     localStorage.removeItem(KEY_CAMERA_OVERLAY);
+    localStorage.removeItem(KEY_CAMERA_UNAVAILABLE);
   } catch {
     // ignore
   }
