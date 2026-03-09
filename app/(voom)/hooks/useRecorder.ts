@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { MutableRefObject } from "react";
 import {
   combineScreenAndCameraStreams,
@@ -59,6 +59,7 @@ export function useRecorder(
   const chunksRef = useRef<Blob[]>([]);
   const startTimeRef = useRef<number>(0);
   const mixedAudioCloseRef = useRef<(() => void) | null>(null);
+  const stopRecordingRef = useRef<() => void>(() => {});
 
   const stopAllStreams = useCallback(() => {
     screen.stopCapture();
@@ -87,12 +88,22 @@ export function useRecorder(
       if (opts?.useExistingScreenStream && screen.streamRef.current) {
         screenStream = screen.streamRef.current;
       } else {
-        screenStream = await screen.startCapture(options.resolution);
+        screenStream = await screen.startCapture(options.resolution, () => stopRecordingRef.current());
       }
       if (!screenStream) {
         setError(screen.error ?? "No se pudo capturar la pantalla.");
         setStatus("idle");
         return;
+      }
+
+      // Cuando el usuario pulsa "Dejar de compartir" en la barra del navegador, la pista termina.
+      // El stream puede haberse obtenido en RecordingFlow (sin callback), por eso registramos aquí siempre.
+      const screenVideoTrack = screenStream.getVideoTracks()[0];
+      if (screenVideoTrack) {
+        screenVideoTrack.addEventListener("ended", () => {
+          console.log("[Voom] Usuario pulsó «Dejar de compartir» en la barra del navegador.");
+          stopRecordingRef.current();
+        });
       }
 
     let micStream: MediaStream | null = null;
@@ -174,7 +185,7 @@ export function useRecorder(
     recorder.start(performanceMode ? 2000 : 1000);
     setStatus("recording");
   },
-  [options, screen, mic, camera]
+  [options, screen, mic, camera, overlayRef]
   );
 
   const stopRecording = useCallback(() => {
@@ -186,6 +197,10 @@ export function useRecorder(
     stopAllStreams();
     mediaRecorderRef.current = null;
   }, [stopAllStreams]);
+
+  useEffect(() => {
+    stopRecordingRef.current = stopRecording;
+  }, [stopRecording]);
 
   const downloadRecording = useCallback(() => {
     const result = recordingResult;

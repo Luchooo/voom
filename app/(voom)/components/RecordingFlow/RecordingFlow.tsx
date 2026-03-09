@@ -126,9 +126,17 @@ export function RecordingFlow() {
 		stopRecording,
 		downloadRecording,
 		reset,
+		status,
 		camera,
 		screen,
 	} = useRecorder(options, overlayRef);
+
+	// Si la grabación termina por "Dejar de compartir" u otro motivo, sincronizar la vista.
+	useEffect(() => {
+		if (status !== "ready" || flowState !== "recording") return;
+		const t = setTimeout(() => setFlowState("ready"), 0);
+		return () => clearTimeout(t);
+	}, [status, flowState]);
 
 	// Sincronizar opción de cámara cuando el hook reporta que no hay dispositivo (evitar switch ON sin cámara).
 	useEffect(() => {
@@ -151,7 +159,10 @@ export function RecordingFlow() {
 
 	const handleStartRecordingClick = useCallback(async () => {
 		setFlowState('awaiting_screen_selection');
-		const stream = await screen.startCapture(options.resolution);
+		// Si el usuario pulsa "Dejar de compartir" durante countdown (o antes de grabar), volver a configuración
+		const stream = await screen.startCapture(options.resolution, () => {
+			setFlowState('device_setup');
+		});
 		if (!stream) {
 			setFlowState('device_setup');
 			return;

@@ -33,6 +33,7 @@ export function useScreenCapture() {
 	const startCapture = useCallback(
 		async (
 			resolution: RecordingResolution = '720p',
+			onStoppedByBrowser?: () => void,
 		): Promise<MediaStream | null> => {
 			setError(null);
 			const size = RESOLUTION_MAP[resolution];
@@ -50,6 +51,7 @@ export function useScreenCapture() {
 				streamRef.current = stream;
 				stream.getVideoTracks()[0].onended = () => {
 					stopCapture();
+					onStoppedByBrowser?.();
 				};
 				setIsCapturing(true);
 				return stream;
