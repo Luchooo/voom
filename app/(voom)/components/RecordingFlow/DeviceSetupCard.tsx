@@ -12,12 +12,14 @@ import type {
   RecorderOptions,
   RecordingResolution,
   RecordingFrameRate,
+  CountdownSeconds,
 } from "@voom/types/recorder";
 import {
   CIRCLE_DIAMETER_MIN,
   CIRCLE_DIAMETER_MAX,
   CIRCLE_DIAMETER_DEFAULT,
 } from "@voom/types/recorder";
+import { useTheme } from "next-themes";
 
 interface DeviceSetupCardProps {
   options: RecorderOptions;
@@ -30,6 +32,11 @@ interface DeviceSetupCardProps {
 }
 
 const FPS_OPTIONS: RecordingFrameRate[] = [30, 60, 120];
+const COUNTDOWN_OPTIONS: { value: CountdownSeconds; label: string }[] = [
+  { value: 3, label: "3 s" },
+  { value: 6, label: "6 s" },
+  { value: 10, label: "10 s" },
+];
 
 /** Card fija arriba a la derecha: dispositivos con iconos, selector de mic/cámara, CTA y Settings */
 export function DeviceSetupCard({
@@ -44,7 +51,9 @@ export function DeviceSetupCard({
   const [openDropdown, setOpenDropdown] = useState<null | "mic" | "camera">(null);
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
+  const { theme, setTheme } = useTheme();
   const devicesSectionRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const toggle = (key: "camera" | "microphone", value: boolean) => {
     onOptionsChange({ ...options, [key]: value });
@@ -86,6 +95,18 @@ export function DeviceSetupCard({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Cerrar configuración al hacer clic fuera de la card (como un modal)
+  useEffect(() => {
+    if (view !== "settings") return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
+        setView("devices");
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [view]);
+
   const selectedMicLabel =
     audioDevices.find((d) => d.deviceId === options.audioDeviceId)?.label ||
     (options.audioDeviceId ? "Micrófono" : "Predeterminado");
@@ -94,7 +115,10 @@ export function DeviceSetupCard({
     (options.videoDeviceId ? "Cámara" : "Predeterminada");
 
   return (
-    <Card className="absolute right-6 top-6 z-10 w-72 border-border bg-card/95 shadow-xl backdrop-blur-md">
+    <Card
+      ref={cardRef}
+      className="absolute right-6 top-6 z-10 w-72 border-border bg-card/95 shadow-xl backdrop-blur-md"
+    >
       <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2 pt-4">
         {view === "devices" ? (
           <>
@@ -322,65 +346,6 @@ export function DeviceSetupCard({
 
         {view === "settings" && (
           <div className="space-y-5">
-            <div>
-              <p className="mb-1 text-sm font-medium text-card-foreground">Calidad de video</p>
-              <p className="mb-2 text-xs text-muted-foreground">
-                Resolución de la captura de pantalla
-              </p>
-              <select
-                value={options.resolution}
-                onChange={(e) => setOption("resolution", e.target.value as RecordingResolution)}
-                className="w-full rounded-lg border border-border bg-muted/50 py-2 pl-3 pr-8 text-sm text-card-foreground focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
-              >
-                <option value="720p">720p</option>
-                <option value="1080p">1080p</option>
-                <option value="native">Nativa</option>
-              </select>
-            </div>
-            <div>
-              <p className="mb-1 text-sm font-medium text-card-foreground">Fotogramas por segundo</p>
-              <p className="mb-2 text-xs text-muted-foreground">
-                FPS del video grabado (30, 60 o 120)
-              </p>
-              <select
-                value={options.frameRate}
-                onChange={(e) =>
-                  setOption("frameRate", Number(e.target.value) as RecordingFrameRate)
-                }
-                className="w-full rounded-lg border border-border bg-muted/50 py-2 pl-3 pr-8 text-sm text-card-foreground focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
-              >
-                {FPS_OPTIONS.map((fps) => (
-                  <option key={fps} value={fps}>
-                    {fps} FPS
-                  </option>
-                ))}
-              </select>
-            </div>
-            <label className="flex items-center justify-between gap-2">
-              <div>
-                <p className="text-sm font-medium text-card-foreground">Modo rendimiento</p>
-                <p className="text-xs text-muted-foreground">
-                  Menos carga en PCs con poca RAM o CPU
-                </p>
-              </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={options.performanceMode ?? false}
-                onClick={() =>
-                  setOption("performanceMode", !(options.performanceMode ?? false))
-                }
-                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                  options.performanceMode ? "bg-green-500" : "bg-muted"
-                }`}
-              >
-                <span
-                  className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-primary shadow transition-transform ${
-                    options.performanceMode ? "translate-x-5" : "translate-x-0"
-                  }`}
-                />
-              </button>
-            </label>
             <label className="flex items-center justify-between gap-2">
               <div>
                 <p className="text-sm font-medium text-card-foreground">Voltear cámara</p>
@@ -428,15 +393,134 @@ export function DeviceSetupCard({
                 className="w-full accent-orange-500"
               />
             </div>
-            {onClearSettings && (
-              <button
-                type="button"
-                onClick={onClearSettings}
-                className="w-full rounded-lg border border-border py-2 text-sm text-muted-foreground hover:bg-muted hover:text-card-foreground"
+
+            <div>
+              <p className="mb-1 text-sm font-medium text-card-foreground">Cuenta regresiva</p>
+              <p className="mb-2 text-xs text-muted-foreground">
+                Tiempo antes de iniciar la grabación (segundos)
+              </p>
+              <div
+                className="inline-flex rounded-lg border border-border bg-muted/50 p-0.5"
+                role="group"
+                aria-label="Segundos de cuenta regresiva"
               >
-                Borrar configuración guardada
-              </button>
-            )}
+                {COUNTDOWN_OPTIONS.map(({ value, label }, i) => {
+                  const isSelected = (options.countdownSeconds ?? 3) === value;
+                  const roundClass =
+                    i === 0
+                      ? "rounded-l-md"
+                      : i === COUNTDOWN_OPTIONS.length - 1
+                        ? "rounded-r-md"
+                        : "rounded-none";
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setOption("countdownSeconds", value)}
+                      className={`${roundClass} px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-background ${
+                        isSelected
+                          ? "bg-card text-card-foreground shadow-sm"
+                          : "text-muted-foreground hover:bg-muted hover:text-card-foreground"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <details className="group">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-2 py-1 text-sm font-medium text-card-foreground hover:text-card-foreground [&::-webkit-details-marker]:hidden">
+                <span>Opciones avanzadas</span>
+                <ChevronDownIcon className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+              </summary>
+              <div className="space-y-4 pt-3">
+                <div>
+                  <p className="mb-1 text-sm font-medium text-card-foreground">Apariencia</p>
+                  <p className="mb-2 text-xs text-muted-foreground">
+                    Tema claro, oscuro o seguir el sistema
+                  </p>
+                  <select
+                    value={theme ?? "system"}
+                    onChange={(e) => setTheme(e.target.value as "system" | "light" | "dark")}
+                    className="w-full rounded-lg border border-border bg-muted/50 py-2 pl-3 pr-8 text-sm text-card-foreground focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  >
+                    <option value="system">Sistema</option>
+                    <option value="light">Claro</option>
+                    <option value="dark">Oscuro</option>
+                  </select>
+                </div>
+                <div>
+                  <p className="mb-1 text-sm font-medium text-card-foreground">Calidad de video</p>
+                  <p className="mb-2 text-xs text-muted-foreground">
+                    Resolución de la captura de pantalla
+                  </p>
+                  <select
+                    value={options.resolution}
+                    onChange={(e) => setOption("resolution", e.target.value as RecordingResolution)}
+                    className="w-full rounded-lg border border-border bg-muted/50 py-2 pl-3 pr-8 text-sm text-card-foreground focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  >
+                    <option value="720p">720p</option>
+                    <option value="1080p">1080p</option>
+                    <option value="native">Nativa</option>
+                  </select>
+                </div>
+                <div>
+                  <p className="mb-1 text-sm font-medium text-card-foreground">Fotogramas por segundo</p>
+                  <p className="mb-2 text-xs text-muted-foreground">
+                    FPS del video grabado (30, 60 o 120)
+                  </p>
+                  <select
+                    value={options.frameRate}
+                    onChange={(e) =>
+                      setOption("frameRate", Number(e.target.value) as RecordingFrameRate)
+                    }
+                    className="w-full rounded-lg border border-border bg-muted/50 py-2 pl-3 pr-8 text-sm text-card-foreground focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  >
+                    {FPS_OPTIONS.map((fps) => (
+                      <option key={fps} value={fps}>
+                        {fps} FPS
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <label className="flex items-center justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-medium text-card-foreground">Modo rendimiento</p>
+                    <p className="text-xs text-muted-foreground">
+                      Menos carga en PCs con poca RAM o CPU
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={options.performanceMode ?? false}
+                    onClick={() =>
+                      setOption("performanceMode", !(options.performanceMode ?? false))
+                    }
+                    className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                      options.performanceMode ? "bg-green-500" : "bg-muted"
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-primary shadow transition-transform ${
+                        options.performanceMode ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                </label>
+                {onClearSettings && (
+                  <button
+                    type="button"
+                    onClick={onClearSettings}
+                    className="w-full rounded-lg border border-border py-2 text-sm text-muted-foreground hover:bg-muted hover:text-card-foreground"
+                  >
+                    Borrar configuración guardada
+                  </button>
+                )}
+              </div>
+            </details>
           </div>
         )}
       </CardContent>

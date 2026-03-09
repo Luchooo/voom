@@ -9,6 +9,9 @@ export type RecordingResolution = "720p" | "1080p" | "native";
 /** Fotogramas por segundo de la grabación */
 export type RecordingFrameRate = 30 | 60 | 120;
 
+/** Segundos de la cuenta regresiva antes de iniciar la grabación */
+export type CountdownSeconds = 3 | 6 | 10;
+
 /** Cuatro estados del overlay de cámara: pequeño, grande, pantalla completa o avatar (icono) */
 export type CameraOverlaySize = "small" | "large" | "fullscreen" | "avatar";
 
@@ -46,6 +49,8 @@ export interface RecorderOptions {
   flipCamera?: boolean;
   /** Diámetro del círculo de cámara en px (100–600). Usado cuando el modo es small o large. */
   circleDiameterPx?: number;
+  /** Segundos de la cuenta regresiva antes de grabar (3, 6 o 10). Por defecto 3. */
+  countdownSeconds?: CountdownSeconds;
 }
 
 export const CIRCLE_DIAMETER_MIN = 100;
