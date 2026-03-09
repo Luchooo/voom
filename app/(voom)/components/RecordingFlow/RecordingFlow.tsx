@@ -40,6 +40,7 @@ const DEFAULT_OPTIONS: RecorderOptions = {
 	performanceMode: true,
 	flipCamera: true,
 	circleDiameterPx: CIRCLE_DIAMETER_DEFAULT,
+	countdownSeconds: 3,
 };
 
 const DEFAULT_CAMERA: StoredCameraOverlay = {
@@ -292,7 +293,10 @@ export function RecordingFlow() {
 			)}
 
 			{flowState === 'countdown' && (
-				<CountdownStep onComplete={handleCountdownComplete} seconds={3} />
+				<CountdownStep
+					onComplete={handleCountdownComplete}
+					seconds={options.countdownSeconds ?? 3}
+				/>
 			)}
 
 			{error && (
