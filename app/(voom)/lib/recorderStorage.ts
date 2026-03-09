@@ -36,13 +36,15 @@ export function loadRecorderOptions(): RecorderOptions | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as RecorderOptions;
     const validCountdown = parsed.countdownSeconds == null || [3, 6, 10].includes(Number(parsed.countdownSeconds));
+    const validDownloadFormat = parsed.downloadFormat == null || ["webm", "mp4"].includes(parsed.downloadFormat);
     if (
       typeof parsed.screen === "boolean" &&
       typeof parsed.microphone === "boolean" &&
       typeof parsed.camera === "boolean" &&
       ["720p", "1080p", "native"].includes(parsed.resolution) &&
       [30, 60, 120].includes(parsed.frameRate) &&
-      validCountdown
+      validCountdown &&
+      validDownloadFormat
     ) {
       return parsed;
     }
