@@ -1,5 +1,6 @@
 'use client';
 
+import { PreviewVideoPlayer } from '@voom/components/PreviewVideoPlayer';
 import { useDeviceAvailability } from '@voom/hooks/useDeviceAvailability';
 import { useRecorder } from '@voom/hooks/useRecorder';
 import { isLowEndDevice } from '@voom/lib/camera';
@@ -25,8 +26,8 @@ import {
 	type RecordingFlowState,
 } from '@voom/types/recorder';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Spinner } from "../../../components/ui/spinner";
-import { PreviewVideoPlayer } from '@voom/components/PreviewVideoPlayer';
+import { Button } from '../../../components/ui/button';
+import { Spinner } from '../../../components/ui/spinner';
 import {
 	CircularCameraPreview,
 	CountdownStep,
@@ -88,21 +89,23 @@ function getInitialCamera(): StoredCameraOverlay {
  * Flujo de pre-grabación: welcome → device_setup → (screen selection) → countdown → recording → ready.
  * Opciones y posición de cámara se persisten en localStorage.
  */
-export function RecordingFlow({ showMp4Option = false }: { showMp4Option?: boolean }) {
+export function RecordingFlow({
+	showMp4Option = false,
+}: {
+	showMp4Option?: boolean;
+}) {
 	const [flowState, setFlowState] = useState<RecordingFlowState>('welcome');
 	const [options, setOptions] = useState<RecorderOptions>(getInitialOptions);
 	const [cameraState, setCameraState] =
 		useState<StoredCameraOverlay>(getInitialCamera);
 	const [storageKey, setStorageKey] = useState(0);
 	const [downloadMenuOpen, setDownloadMenuOpen] = useState(false);
-	const [displayMediaUnsupported, setDisplayMediaUnsupported] = useState(false);
+	const [displayMediaUnsupported] = useState(
+		() => typeof window !== 'undefined' && !isDisplayMediaSupported(),
+	);
 	const overlayRef = useRef<CameraOverlayState | null>(null);
 	const flowStateRef = useRef<RecordingFlowState>(flowState);
 	const downloadMenuRef = useRef<HTMLDivElement>(null);
-
-	useEffect(() => {
-		setDisplayMediaUnsupported(!isDisplayMediaSupported());
-	}, []);
 
 	useEffect(() => {
 		flowStateRef.current = flowState;
@@ -171,24 +174,32 @@ export function RecordingFlow({ showMp4Option = false }: { showMp4Option?: boole
 			});
 		}, 0);
 		return () => clearTimeout(id);
-	}, [isDeviceSetup, availability.isLoading, availability.hasCamera, availability.hasMicrophone]);
+	}, [
+		isDeviceSetup,
+		availability.isLoading,
+		availability.hasCamera,
+		availability.hasMicrophone,
+	]);
 
 	// Cerrar menú de descarga al hacer clic fuera
 	useEffect(() => {
 		if (!downloadMenuOpen) return;
 		const handleClick = (e: MouseEvent) => {
-			if (downloadMenuRef.current && !downloadMenuRef.current.contains(e.target as Node)) {
+			if (
+				downloadMenuRef.current &&
+				!downloadMenuRef.current.contains(e.target as Node)
+			) {
 				setDownloadMenuOpen(false);
 			}
 		};
-		document.addEventListener("mousedown", handleClick);
-		return () => document.removeEventListener("mousedown", handleClick);
+		document.addEventListener('mousedown', handleClick);
+		return () => document.removeEventListener('mousedown', handleClick);
 	}, [downloadMenuOpen]);
 
 	// Si la grabación termina por "Dejar de compartir" u otro motivo, sincronizar la vista.
 	useEffect(() => {
-		if (status !== "ready" || flowState !== "recording") return;
-		const t = setTimeout(() => setFlowState("ready"), 0);
+		if (status !== 'ready' || flowState !== 'recording') return;
+		const t = setTimeout(() => setFlowState('ready'), 0);
 		return () => clearTimeout(t);
 	}, [status, flowState]);
 
@@ -205,7 +216,10 @@ export function RecordingFlow({ showMp4Option = false }: { showMp4Option?: boole
 	// Sincronizar opción de micrófono cuando el hook reporta que no hay dispositivo.
 	useEffect(() => {
 		if (!mic?.deviceNotFound || !options.microphone) return;
-		const id = setTimeout(() => setOptions((prev) => ({ ...prev, microphone: false })), 0);
+		const id = setTimeout(
+			() => setOptions((prev) => ({ ...prev, microphone: false })),
+			0,
+		);
 		return () => clearTimeout(id);
 	}, [mic?.deviceNotFound, options.microphone]);
 
@@ -275,21 +289,27 @@ export function RecordingFlow({ showMp4Option = false }: { showMp4Option?: boole
 		setFlowState('ready');
 	}, []);
 
-	if (flowState === 'recording' || flowState === 'ready' || flowState === 'trim') {
+	if (
+		flowState === 'recording' ||
+		flowState === 'ready' ||
+		flowState === 'trim'
+	) {
 		return (
 			<RecordingOverlay>
 				{flowState === 'recording' && (
 					<div className="flex min-h-full flex-col items-center justify-center gap-6 p-8">
-						<div className="rounded-full bg-red-500/20 px-4 py-2 text-sm font-medium text-red-200">
+						<div className="rounded-full bg-orange-500/20 px-4 py-2 text-sm font-medium text-orange-200">
 							Grabando…
 						</div>
-						<button
+						<Button
 							type="button"
+							variant="orange"
+							size="lg"
 							onClick={handleStopRecording}
-							className="rounded-lg bg-red-600 px-6 py-2.5 font-semibold text-white hover:bg-red-500"
+							className="px-6 py-2.5 font-semibold"
 						>
 							Detener
-						</button>
+						</Button>
 					</div>
 				)}
 				{flowState === 'trim' && recordingResult && (
@@ -316,53 +336,75 @@ export function RecordingFlow({ showMp4Option = false }: { showMp4Option?: boole
 							<div ref={downloadMenuRef} className="relative flex">
 								{showMp4Option ? (
 									<>
-										<button
+										<Button
 											type="button"
-											onClick={() => void downloadRecording("webm")}
+											variant="orange"
+											size="lg"
 											disabled={isConvertingToMp4}
-											className="flex min-w-[10rem] items-center justify-center gap-2 rounded-l-lg bg-orange-600 px-6 py-2.5 font-semibold text-white hover:bg-orange-500 disabled:opacity-70"
+											onClick={() => void downloadRecording('webm')}
+											className="min-w-40 rounded-r-none [&_svg]:h-5 [&_svg]:w-5"
 										>
-											{isConvertingToMp4 && <Spinner size="sm" className="shrink-0" />}
-											{isConvertingToMp4 ? "Descargando…" : "Descargar"}
-										</button>
-										<button
-											type="button"
-											onClick={() => setDownloadMenuOpen((o) => !o)}
-											disabled={isConvertingToMp4}
-											className="rounded-r-lg border border-l-0 border-orange-600 bg-orange-600 px-2 py-2.5 text-white hover:bg-orange-500 disabled:opacity-70"
-											aria-expanded={downloadMenuOpen}
-											aria-haspopup="true"
-											aria-label="Más opciones de descarga"
-										>
-											<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-												<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+											{isConvertingToMp4 && (
+												<Spinner size="sm" className="shrink-0" />
+											)}
+											{isConvertingToMp4 ? 'Descargando…' : 'Descargar'}
+										</Button>
+<Button
+										type="button"
+										variant="orange"
+										size="icon"
+										disabled={isConvertingToMp4}
+										onClick={() => setDownloadMenuOpen((o) => !o)}
+										aria-expanded={downloadMenuOpen}
+										aria-haspopup="true"
+										aria-label="Más opciones de descarga"
+										className="h-10 w-10 rounded-l-none border-l border-white/20 [&_svg]:h-5 [&_svg]:w-5"
+									>
+											<svg
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+												aria-hidden
+											>
+												<path
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													strokeWidth={2}
+													d="M19 9l-7 7-7-7"
+												/>
 											</svg>
-										</button>
+										</Button>
 										{downloadMenuOpen && (
 											<div className="absolute left-0 top-full z-10 mt-1 min-w-[180px] rounded-lg border border-border bg-card py-1 shadow-xl">
-												<button
+												<Button
 													type="button"
-													className="w-full px-4 py-2.5 text-left text-sm text-card-foreground hover:bg-muted"
+													variant="ghost"
+													size="lg"
+													className="w-full justify-start px-4 py-2.5 text-sm font-normal"
 													onClick={() => {
-														void downloadRecording("mp4");
+														void downloadRecording('mp4');
 														setDownloadMenuOpen(false);
 													}}
 												>
 													Descargar en .mp4
-												</button>
+												</Button>
 											</div>
 										)}
 									</>
 								) : (
-									<button
+									<Button
 										type="button"
-										onClick={() => void downloadRecording("webm")}
+										variant="orange"
+										size="lg"
 										disabled={isConvertingToMp4}
-										className="flex min-w-[10rem] items-center justify-center gap-2 rounded-lg bg-orange-600 px-6 py-2.5 font-semibold text-white hover:bg-orange-500 disabled:opacity-70"
+										onClick={() => void downloadRecording('webm')}
+										className="min-w-40 [&_svg]:h-5 [&_svg]:w-5"
 									>
-										{isConvertingToMp4 && <Spinner size="sm" className="shrink-0" />}
-										{isConvertingToMp4 ? "Descargando…" : "Descargar"}
-									</button>
+										{isConvertingToMp4 && (
+											<Spinner size="sm" className="shrink-0" />
+										)}
+										{isConvertingToMp4 ? 'Descargando…' : 'Descargar'}
+									</Button>
 								)}
 							</div>
 							<VersionDropdown
@@ -371,13 +413,15 @@ export function RecordingFlow({ showMp4Option = false }: { showMp4Option?: boole
 								onSelectVersion={setCurrentVersion}
 								onEditVideo={() => setFlowState('trim')}
 							/>
-							<button
+							<Button
 								type="button"
+								variant="secondary"
+								size="lg"
 								onClick={handleReset}
-								className="rounded-lg border-2 border-border bg-muted px-6 py-2.5 font-semibold text-foreground hover:bg-muted/80"
+								className="border-2 border-border"
 							>
 								Grabar de nuevo
-							</button>
+							</Button>
 						</div>
 					</div>
 				)}

@@ -14,6 +14,7 @@ import {
 import { useTheme } from 'next-themes';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { IoMicOffOutline, IoMicOutline } from 'react-icons/io5';
+import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardHeader } from '../../../components/ui/card';
 
 interface DeviceSetupCardProps {
@@ -192,26 +193,29 @@ export function DeviceSetupCard({
 						<h3 className="text-sm font-medium text-card-foreground">
 							Dispositivos
 						</h3>
-						<button
+						<Button
 							type="button"
+							variant="ghost"
+							size="icon"
 							onClick={() => setView('settings')}
-							className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-card-foreground"
+							className="h-10 w-10 [&_svg]:h-5 [&_svg]:w-5"
 							title="Configuración"
 							aria-label="Abrir configuración"
 						>
 							<SettingsIcon className="h-5 w-5" />
-						</button>
+						</Button>
 					</>
 				) : (
 					<>
-						<button
+						<Button
 							type="button"
+							variant="ghost"
 							onClick={() => setView('devices')}
-							className="flex items-center gap-1 rounded p-1 text-muted-foreground hover:bg-muted hover:text-card-foreground"
+							className="[&_svg]:h-4 [&_svg]:w-4"
 							aria-label="Volver"
 						>
 							<BackIcon className="h-4 w-4" />
-						</button>
+						</Button>
 						<h3 className="text-sm font-medium text-card-foreground">
 							Configuración
 						</h3>
@@ -269,10 +273,12 @@ export function DeviceSetupCard({
 										</button>
 									</div>
 									<div className="relative">
-										<button
+										<Button
 											type="button"
+											variant="outline"
+											size="lg"
 											onClick={openCameraDropdown}
-											className="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-left text-sm text-card-foreground hover:bg-muted hover:border-muted-foreground/30"
+											className="w-full justify-between gap-2 px-3 py-2.5 text-left text-sm font-normal bg-muted/50 hover:bg-muted hover:border-muted-foreground/30"
 											aria-expanded={openDropdown === 'camera'}
 											aria-haspopup="listbox"
 										>
@@ -282,32 +288,34 @@ export function DeviceSetupCard({
 											<ChevronDownIcon
 												className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${openDropdown === 'camera' ? 'rotate-180' : ''}`}
 											/>
-										</button>
+										</Button>
 										{openDropdown === 'camera' && (
 											<div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-auto rounded-lg border border-border bg-card py-1 shadow-xl">
-												<button
+												<Button
 													type="button"
+													variant="ghost"
 													onClick={() => {
 														setOption('videoDeviceId', undefined);
 														setOpenDropdown(null);
 													}}
-													className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-card-foreground hover:bg-muted"
+													className="w-full justify-start gap-2 px-3 py-2.5 text-sm font-normal h-auto"
 												>
 													<CameraIcon className="h-4 w-4 shrink-0" />
 													Predeterminada
-												</button>
+												</Button>
 												{videoDevices.map((d) => (
-													<button
+													<Button
 														key={d.deviceId}
 														type="button"
+														variant="ghost"
 														onClick={() => {
 															setOption('videoDeviceId', d.deviceId);
 															setOpenDropdown(null);
 														}}
-														className={`flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-muted ${
+														className={`w-full justify-start gap-2 px-3 py-2.5 text-sm font-normal h-auto ${
 															options.videoDeviceId === d.deviceId
 																? 'bg-accent text-accent-foreground'
-																: 'text-card-foreground'
+																: ''
 														}`}
 													>
 														<CameraIcon className="h-4 w-4 shrink-0" />
@@ -317,7 +325,7 @@ export function DeviceSetupCard({
 														{options.videoDeviceId === d.deviceId && (
 															<CheckIcon className="ml-auto h-4 w-4 shrink-0" />
 														)}
-													</button>
+													</Button>
 												))}
 											</div>
 										)}
@@ -375,10 +383,12 @@ export function DeviceSetupCard({
 										</button>
 									</div>
 									<div className="relative">
-										<button
+										<Button
 											type="button"
+											variant="outline"
+											size="lg"
 											onClick={openMicDropdown}
-											className="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-left text-sm text-card-foreground hover:bg-muted hover:border-muted-foreground/30"
+											className="w-full justify-between gap-2 px-3 py-2.5 text-left text-sm font-normal bg-muted/50 hover:bg-muted hover:border-muted-foreground/30"
 											aria-expanded={openDropdown === 'mic'}
 											aria-haspopup="listbox"
 										>
@@ -388,32 +398,34 @@ export function DeviceSetupCard({
 											<ChevronDownIcon
 												className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${openDropdown === 'mic' ? 'rotate-180' : ''}`}
 											/>
-										</button>
+										</Button>
 										{openDropdown === 'mic' && (
 											<div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-auto rounded-lg border border-border bg-card py-1 shadow-xl">
-												<button
+												<Button
 													type="button"
+													variant="ghost"
 													onClick={() => {
 														setOption('audioDeviceId', undefined);
 														setOpenDropdown(null);
 													}}
-													className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-card-foreground hover:bg-muted"
+													className="w-full justify-start gap-2 px-3 py-2.5 text-sm font-normal h-auto"
 												>
 													<IoMicOutline className="h-4 w-4 shrink-0" />
 													Predeterminado
-												</button>
+												</Button>
 												{audioDevices.map((d) => (
-													<button
+													<Button
 														key={d.deviceId}
 														type="button"
+														variant="ghost"
 														onClick={() => {
 															setOption('audioDeviceId', d.deviceId);
 															setOpenDropdown(null);
 														}}
-														className={`flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-muted ${
+														className={`w-full justify-start gap-2 px-3 py-2.5 text-sm font-normal h-auto ${
 															options.audioDeviceId === d.deviceId
 																? 'bg-accent text-accent-foreground'
-																: 'text-card-foreground'
+																: ''
 														}`}
 													>
 														<IoMicOutline className="h-4 w-4 shrink-0" />
@@ -423,7 +435,7 @@ export function DeviceSetupCard({
 														{options.audioDeviceId === d.deviceId && (
 															<CheckIcon className="ml-auto h-4 w-4 shrink-0" />
 														)}
-													</button>
+													</Button>
 												))}
 											</div>
 										)}
@@ -432,16 +444,18 @@ export function DeviceSetupCard({
 							)}
 						</div>
 
-						<button
+						<Button
 							type="button"
-							onClick={onStartRecording}
+							variant="orange"
+							size="lg"
 							disabled={isRequestingScreen}
-							className="w-full rounded-lg bg-orange-600 py-2.5 font-medium text-white hover:bg-orange-500 disabled:opacity-50"
+							onClick={onStartRecording}
+							className="w-full"
 						>
 							{isRequestingScreen
 								? 'Selecciona qué compartir…'
 								: 'Iniciar grabación'}
-						</button>
+						</Button>
 					</div>
 				)}
 
@@ -528,18 +542,17 @@ export function DeviceSetupCard({
 												? 'rounded-r-md'
 												: 'rounded-none';
 									return (
-										<button
+										<Button
 											key={value}
 											type="button"
+											variant={isSelected ? 'secondary' : 'ghost'}
 											onClick={() => setOption('countdownSeconds', value)}
-											className={`${roundClass} px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-background ${
-												isSelected
-													? 'bg-card text-card-foreground shadow-sm'
-													: 'text-muted-foreground hover:bg-muted hover:text-card-foreground'
+											className={`${roundClass} focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-background ${
+												isSelected ? 'bg-card shadow-sm' : 'text-muted-foreground'
 											}`}
 										>
 											{label}
-										</button>
+										</Button>
 									);
 								})}
 							</div>
@@ -649,13 +662,15 @@ export function DeviceSetupCard({
 									</button>
 								</label>
 								{onClearSettings && (
-									<button
+									<Button
 										type="button"
+										variant="outline"
+										size="lg"
 										onClick={onClearSettings}
-										className="w-full rounded-lg border border-border py-2 text-sm text-muted-foreground hover:bg-muted hover:text-card-foreground"
+										className="w-full"
 									>
 										Borrar configuración guardada
-									</button>
+									</Button>
 								)}
 							</div>
 						</details>

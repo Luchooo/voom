@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	title: 'Voom — Grabar pantalla y cámara',
+	title: 'Voom — Grabar pantalla y cámara desde el navegador',
 	description:
-		'Graba tu pantalla, voz y cámara. Descarga el video al instante.',
+		'Un video vale más que mil palabras. Graba pantalla, cámara y micrófono en segundos. Recorta y descarga al instante, sin instalar nada.',
 };
 
 export default function RootLayout({
