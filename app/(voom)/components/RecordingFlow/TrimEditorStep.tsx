@@ -63,7 +63,7 @@ export function TrimEditorStep({
 		if (durationSeconds > 0 && endTime > durationSeconds) {
 			setEndTime(durationSeconds);
 		}
-	}, [durationSeconds]);
+	}, [durationSeconds, endTime]);
 
 	const duration = Math.max(0, durationSeconds);
 	const startClamped = Math.max(

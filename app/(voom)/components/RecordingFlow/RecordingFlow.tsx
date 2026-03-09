@@ -100,14 +100,12 @@ export function RecordingFlow({
 		useState<StoredCameraOverlay>(getInitialCamera);
 	const [storageKey, setStorageKey] = useState(0);
 	const [downloadMenuOpen, setDownloadMenuOpen] = useState(false);
-	const [displayMediaUnsupported, setDisplayMediaUnsupported] = useState(false);
+	const [displayMediaUnsupported] = useState(
+		() => typeof window !== 'undefined' && !isDisplayMediaSupported(),
+	);
 	const overlayRef = useRef<CameraOverlayState | null>(null);
 	const flowStateRef = useRef<RecordingFlowState>(flowState);
 	const downloadMenuRef = useRef<HTMLDivElement>(null);
-
-	useEffect(() => {
-		setDisplayMediaUnsupported(!isDisplayMediaSupported());
-	}, []);
 
 	useEffect(() => {
 		flowStateRef.current = flowState;
