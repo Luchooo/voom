@@ -64,10 +64,11 @@ export function CameraOverlay({
   useEffect(() => {
     if (!stream || !videoRef.current) return;
     if (size === "avatar") return;
-    videoRef.current.srcObject = stream;
-    videoRef.current.play().catch(() => {});
+    const video = videoRef.current;
+    video.srcObject = stream;
+    video.play().catch(() => {});
     return () => {
-      if (videoRef.current) videoRef.current.srcObject = null;
+      video.srcObject = null;
     };
   }, [stream, size]);
 

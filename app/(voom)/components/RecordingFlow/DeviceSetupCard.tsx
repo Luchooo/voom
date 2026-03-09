@@ -85,6 +85,32 @@ export function DeviceSetupCard({
     loadDevices("videoinput");
   }, [loadDevices]);
 
+  // Cargar lista de dispositivos al mostrar la vista "Dispositivos" para que el botón muestre siempre el nombre correcto
+  useEffect(() => {
+    if (view !== "devices") return;
+    const t = setTimeout(() => {
+      loadDevices("audioinput");
+      loadDevices("videoinput");
+    }, 0);
+    return () => clearTimeout(t);
+  }, [view, loadDevices]);
+
+  // Si el dispositivo guardado (localStorage) ya no está en la lista → usar predeterminado del sistema
+  useEffect(() => {
+    if (audioDevices.length === 0 && videoDevices.length === 0) return;
+    const updates: Partial<RecorderOptions> = {};
+    if (audioDevices.length > 0 && options.audioDeviceId && !audioDevices.some((d) => d.deviceId === options.audioDeviceId)) {
+      updates.audioDeviceId = undefined;
+    }
+    if (videoDevices.length > 0 && options.videoDeviceId && !videoDevices.some((d) => d.deviceId === options.videoDeviceId)) {
+      updates.videoDeviceId = undefined;
+    }
+    if (Object.keys(updates).length > 0) {
+      onOptionsChange({ ...options, ...updates });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- options/onOptionsChange omitidos a propósito para evitar bucle al limpiar deviceId
+  }, [audioDevices, videoDevices]);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (devicesSectionRef.current && !devicesSectionRef.current.contains(e.target as Node)) {
@@ -107,12 +133,20 @@ export function DeviceSetupCard({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [view]);
 
+  const micDevice = audioDevices.find((d) => d.deviceId === options.audioDeviceId);
+  const micIndex = options.audioDeviceId ? audioDevices.findIndex((d) => d.deviceId === options.audioDeviceId) : -1;
+  const micInList = micIndex >= 0;
   const selectedMicLabel =
-    audioDevices.find((d) => d.deviceId === options.audioDeviceId)?.label ||
-    (options.audioDeviceId ? "Micrófono" : "Predeterminado");
+    !options.audioDeviceId || !micInList
+      ? "Predeterminado"
+      : (micDevice?.label?.trim() || `Micrófono ${micIndex + 1}`);
+  const cameraDevice = videoDevices.find((d) => d.deviceId === options.videoDeviceId);
+  const cameraIndex = options.videoDeviceId ? videoDevices.findIndex((d) => d.deviceId === options.videoDeviceId) : -1;
+  const cameraInList = cameraIndex >= 0;
   const selectedCameraLabel =
-    videoDevices.find((d) => d.deviceId === options.videoDeviceId)?.label ||
-    (options.videoDeviceId ? "Cámara" : "Predeterminada");
+    !options.videoDeviceId || !cameraInList
+      ? "Predeterminada"
+      : (cameraDevice?.label?.trim() || `Cámara ${cameraIndex + 1}`);
 
   return (
     <Card
