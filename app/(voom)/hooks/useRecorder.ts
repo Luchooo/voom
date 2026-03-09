@@ -232,6 +232,13 @@ export function useRecorder(
     setError(null);
   }, [recordingResult]);
 
+  /** Reemplaza la grabación actual por un blob recortado (tras "Editar video" → Aplicar recorte). */
+  const replaceResult = useCallback((blob: Blob, durationSeconds: number) => {
+    if (recordingResult?.url) URL.revokeObjectURL(recordingResult.url);
+    const url = URL.createObjectURL(blob);
+    setRecordingResult({ blob, url, durationSeconds });
+  }, [recordingResult?.url]);
+
   return {
     status,
     error: error ?? screen.error ?? mic.error ?? camera.error,
@@ -241,6 +248,7 @@ export function useRecorder(
     downloadRecording,
     isConvertingToMp4,
     reset,
+    replaceResult,
     screen,
     mic,
     camera,
