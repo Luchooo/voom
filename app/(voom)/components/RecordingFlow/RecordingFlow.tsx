@@ -32,6 +32,7 @@ import {
 	DeviceSetupCard,
 	DisplayMediaUnsupportedStep,
 	RecordingOverlay,
+	TrimEditorStep,
 	WelcomeStep,
 } from './steps';
 
@@ -146,6 +147,7 @@ export function RecordingFlow({ showMp4Option = false }: { showMp4Option?: boole
 		downloadRecording,
 		isConvertingToMp4,
 		reset,
+		replaceResult,
 		status,
 		camera,
 		mic,
@@ -256,7 +258,19 @@ export function RecordingFlow({ showMp4Option = false }: { showMp4Option?: boole
 		setFlowState('welcome');
 	}, [reset]);
 
-	if (flowState === 'recording' || flowState === 'ready') {
+	const handleApplyTrim = useCallback(
+		(trimmedBlob: Blob, newDurationSeconds: number) => {
+			replaceResult(trimmedBlob, newDurationSeconds);
+			setFlowState('ready');
+		},
+		[replaceResult],
+	);
+
+	const handleCancelTrim = useCallback(() => {
+		setFlowState('ready');
+	}, []);
+
+	if (flowState === 'recording' || flowState === 'ready' || flowState === 'trim') {
 		return (
 			<RecordingOverlay>
 				{flowState === 'recording' && (
@@ -272,6 +286,15 @@ export function RecordingFlow({ showMp4Option = false }: { showMp4Option?: boole
 							Detener
 						</button>
 					</div>
+				)}
+				{flowState === 'trim' && recordingResult && (
+					<TrimEditorStep
+						videoUrl={recordingResult.url}
+						blob={recordingResult.blob}
+						durationSeconds={recordingResult.durationSeconds}
+						onApplyTrim={handleApplyTrim}
+						onCancel={handleCancelTrim}
+					/>
 				)}
 				{flowState === 'ready' && recordingResult && (
 					<div className="flex min-h-full flex-col items-center justify-center gap-6 p-6">
@@ -339,6 +362,13 @@ export function RecordingFlow({ showMp4Option = false }: { showMp4Option?: boole
 									</button>
 								)}
 							</div>
+							<button
+								type="button"
+								onClick={() => setFlowState('trim')}
+								className="rounded-lg border-2 border-border bg-muted px-6 py-2.5 font-semibold text-foreground hover:bg-muted/80"
+							>
+								Editar video
+							</button>
 							<button
 								type="button"
 								onClick={handleReset}

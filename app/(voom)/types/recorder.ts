@@ -80,6 +80,7 @@ export type RecordingFlowState =
   | "countdown"                // Cuenta regresiva 3, 2, 1
   | "recording"                 // Grabando
   | "ready"                    // Grabación lista para descargar
+  | "trim"                     // Editor de recorte (inicio/fin)
   | "cancelled";               // Usuario canceló (ej. share screen)
 
 /** Errores tipados que puede emitir el recorder */
