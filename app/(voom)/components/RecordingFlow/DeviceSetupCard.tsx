@@ -3,6 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { IoMicOutline, IoMicOffOutline } from "react-icons/io5";
 import { Card, CardContent, CardHeader } from "../../../components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "../../../components/ui/tooltip";
 import type {
   RecorderOptions,
   RecordingResolution,
@@ -20,6 +25,8 @@ interface DeviceSetupCardProps {
   onStartRecording: () => void;
   onClearSettings?: () => void;
   isRequestingScreen: boolean;
+  /** Cuando no se detectó ninguna cámara: el switch queda deshabilitado y se muestra un tooltip. */
+  cameraNotFound?: boolean;
 }
 
 const FPS_OPTIONS: RecordingFrameRate[] = [30, 60, 120];
@@ -31,6 +38,7 @@ export function DeviceSetupCard({
   onStartRecording,
   onClearSettings,
   isRequestingScreen,
+  cameraNotFound = false,
 }: DeviceSetupCardProps) {
   const [view, setView] = useState<"devices" | "settings">("devices");
   const [openDropdown, setOpenDropdown] = useState<null | "mic" | "camera">(null);
@@ -130,27 +138,55 @@ export function DeviceSetupCard({
                   )}
                   Cámara
                 </span>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={options.camera}
-                  onClick={() => toggle("camera", !options.camera)}
-                  className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                    options.camera ? "bg-green-500" : "bg-white/30"
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                      options.camera ? "translate-x-5" : "translate-x-0"
+                {cameraNotFound ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="inline-flex cursor-not-allowed [&_button]:pointer-events-none">
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={false}
+                          disabled
+                          aria-disabled
+                          className="relative h-6 w-11 shrink-0 cursor-not-allowed rounded-full bg-white/30 opacity-70"
+                        >
+                          <span className="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow translate-x-0" />
+                        </button>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="left">
+                      No encontramos ninguna cámara.
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={options.camera}
+                    onClick={() => toggle("camera", !options.camera)}
+                    className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                      options.camera ? "bg-green-500" : "bg-white/30"
                     }`}
-                  />
-                </button>
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                        options.camera ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                )}
               </div>
               <div className="relative">
                 <button
                   type="button"
-                  onClick={openCameraDropdown}
-                  className="flex w-full items-center justify-between gap-2 rounded-lg border border-white/25 bg-white/5 px-3 py-2.5 text-left text-sm text-white hover:border-white/40 hover:bg-white/10"
+                  onClick={cameraNotFound ? undefined : openCameraDropdown}
+                  disabled={cameraNotFound}
+                  aria-disabled={cameraNotFound}
+                  className={`flex w-full items-center justify-between gap-2 rounded-lg border border-white/25 px-3 py-2.5 text-left text-sm text-white ${
+                    cameraNotFound
+                      ? "cursor-not-allowed bg-white/5 opacity-60"
+                      : "bg-white/5 hover:border-white/40 hover:bg-white/10"
+                  }`}
                   aria-expanded={openDropdown === "camera"}
                   aria-haspopup="listbox"
                 >
