@@ -208,10 +208,10 @@ export function RecordingFlow() {
 				)}
 				{flowState === 'ready' && recordingResult && (
 					<div className="flex min-h-full flex-col items-center justify-center gap-6 p-6">
-						<p className="text-sm text-white/80">
+						<p className="text-sm text-foreground">
 							Grabación lista ({recordingResult.durationSeconds.toFixed(1)} s)
 						</p>
-						<div className="w-full max-w-4xl overflow-hidden rounded-xl border border-white/20 bg-black/50 shadow-2xl">
+						<div className="w-full max-w-4xl overflow-hidden rounded-xl border border-border bg-card shadow-2xl">
 							<video
 								src={recordingResult.url}
 								controls
@@ -230,7 +230,7 @@ export function RecordingFlow() {
 							<button
 								type="button"
 								onClick={handleReset}
-								className="rounded-lg border-2 border-white/40 bg-white/15 px-6 py-2.5 font-semibold text-white hover:bg-white/25"
+								className="rounded-lg border-2 border-border bg-muted px-6 py-2.5 font-semibold text-foreground hover:bg-muted/80"
 							>
 								Grabar de nuevo
 							</button>
@@ -284,7 +284,7 @@ export function RecordingFlow() {
 						cameraNotFound={camera?.deviceNotFound ?? false}
 					/>
 					<div className="flex min-h-full items-center justify-center p-8">
-						<p className="text-white/90">
+						<p className="text-foreground">
 							Selecciona qué compartir en el diálogo del navegador…
 						</p>
 					</div>

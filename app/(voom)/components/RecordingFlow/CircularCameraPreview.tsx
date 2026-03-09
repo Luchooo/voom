@@ -173,12 +173,12 @@ export function CircularCameraPreview({
   const showVideo = stream && size !== "avatar";
 
   const sizeButtons = (
-    <div className="flex items-center gap-0.5 rounded-lg border border-white/30 bg-neutral-900 px-1.5 py-1.5 shadow-xl">
+    <div className="flex items-center gap-0.5 rounded-lg border border-border bg-card px-1.5 py-1.5 shadow-xl">
       <button
         type="button"
         onClick={() => setSizeAndSync("small")}
         title="Pequeño"
-        className="flex h-9 w-9 items-center justify-center rounded text-white hover:bg-white/20"
+        className="flex h-9 w-9 items-center justify-center rounded text-card-foreground hover:bg-muted"
       >
         <SmallCircleIcon className="h-4 w-4" />
       </button>
@@ -186,7 +186,7 @@ export function CircularCameraPreview({
         type="button"
         onClick={() => setSizeAndSync("large")}
         title="Grande"
-        className="flex h-9 w-9 items-center justify-center rounded text-white hover:bg-white/20"
+        className="flex h-9 w-9 items-center justify-center rounded text-card-foreground hover:bg-muted"
       >
         <LargeCircleIcon className="h-5 w-5" />
       </button>
@@ -194,7 +194,7 @@ export function CircularCameraPreview({
         type="button"
         onClick={() => setSizeAndSync("fullscreen")}
         title="Pantalla completa"
-        className="flex h-9 w-9 items-center justify-center rounded text-white hover:bg-white/20"
+        className="flex h-9 w-9 items-center justify-center rounded text-card-foreground hover:bg-muted"
       >
         <ExpandIcon className="h-4 w-4" />
       </button>
@@ -202,7 +202,7 @@ export function CircularCameraPreview({
         type="button"
         onClick={() => setSizeAndSync("avatar")}
         title="Avatar"
-        className="flex h-9 w-9 items-center justify-center rounded text-white hover:bg-white/20"
+        className="flex h-9 w-9 items-center justify-center rounded text-card-foreground hover:bg-muted"
       >
         <AvatarIcon className="h-5 w-5" />
       </button>
@@ -212,7 +212,7 @@ export function CircularCameraPreview({
   if (size === "fullscreen") {
     return (
       <div
-        className="fixed inset-2 z-[5] overflow-hidden rounded-3xl border-4 border-white/90 shadow-2xl ring-2 ring-black/20"
+        className="fixed inset-2 z-[5] overflow-hidden rounded-3xl border-4 border-border shadow-2xl ring-2 ring-foreground/20"
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
       >
@@ -232,7 +232,7 @@ export function CircularCameraPreview({
             <div className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2">
               {sizeButtons}
             </div>
-            <span className="absolute bottom-14 left-1/2 z-10 -translate-x-1/2 rounded-full bg-neutral-900 px-2 py-0.5 text-xs font-medium text-white">
+            <span className="absolute bottom-14 left-1/2 z-10 -translate-x-1/2 rounded-full bg-card border border-border px-2 py-0.5 text-xs font-medium text-card-foreground">
               {getOverlayLabel(size)}
             </span>
           </>
@@ -250,7 +250,7 @@ export function CircularCameraPreview({
     >
       <div className="relative">
         <div
-          className={`relative overflow-hidden rounded-full border-4 border-white/90 shadow-2xl ring-2 ring-black/20 transition-[width,height] duration-200 hover:shadow-orange-500/20 ${
+          className={`relative overflow-hidden rounded-full border-4 border-border shadow-2xl ring-2 ring-foreground/20 transition-[width,height] duration-200 hover:shadow-orange-500/20 ${
             dragging ? "cursor-grabbing" : "cursor-grab"
           }`}
           style={{ width: circlePx, height: circlePx }}
@@ -265,8 +265,8 @@ export function CircularCameraPreview({
               playsInline
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-neutral-800">
-              <AvatarIcon className="h-1/3 w-1/3 text-white/80" />
+            <div className="flex h-full w-full items-center justify-center bg-muted">
+              <AvatarIcon className="h-1/3 w-1/3 text-muted-foreground" />
             </div>
           )}
         </div>
@@ -277,7 +277,7 @@ export function CircularCameraPreview({
         )}
       </div>
       {hover && (
-        <span className="rounded-full bg-neutral-900 px-2 py-0.5 text-xs font-medium text-white">
+        <span className="rounded-full bg-card border border-border px-2 py-0.5 text-xs font-medium text-card-foreground">
           {getOverlayLabel(size)}
         </span>
       )}

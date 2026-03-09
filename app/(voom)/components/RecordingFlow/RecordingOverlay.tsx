@@ -11,7 +11,7 @@ interface RecordingOverlayProps {
 export function RecordingOverlay({ children, className = "" }: RecordingOverlayProps) {
   return (
     <div
-      className={`fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity ${className}`}
+      className={`fixed inset-0 z-50 bg-black/20 backdrop-blur-sm transition-opacity dark:bg-black/50 ${className}`}
       aria-modal="true"
       role="dialog"
     >

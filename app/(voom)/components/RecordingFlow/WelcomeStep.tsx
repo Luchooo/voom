@@ -11,7 +11,7 @@ export function WelcomeStep({ onStart }: WelcomeStepProps) {
       <button
         type="button"
         onClick={onStart}
-        className="h-14 rounded-full bg-orange-600 px-10 text-lg font-semibold text-white shadow-lg transition-all hover:bg-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-black/50"
+        className="h-14 rounded-full bg-orange-600 px-10 text-lg font-semibold text-white shadow-lg transition-all hover:bg-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-background"
       >
         Grabar
       </button>
