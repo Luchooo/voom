@@ -10,6 +10,7 @@ import {
 } from "@voom/lib/streams";
 import { getRecordingFilename, downloadBlob } from "@voom/lib/download";
 import { getSupportedMimeType } from "@voom/lib/mediaRecorder";
+import { convertWebmToMp4 } from "@voom/lib/convertWebmToMp4";
 import type {
   CameraOverlayState,
   RecorderOptions,
@@ -45,6 +46,7 @@ export function useRecorder(
   const [status, setStatus] = useState<RecorderStatus>("idle");
   const [recordingResult, setRecordingResult] = useState<RecordingResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isConvertingToMp4, setIsConvertingToMp4] = useState(false);
 
   const screen = useScreenCapture();
   const mic = useMicrophone();
@@ -190,11 +192,12 @@ export function useRecorder(
 
   const stopRecording = useCallback(() => {
     setStatus("stopping");
+    // Detener primero la captura de pantalla para que Chrome oculte la barra "Dejar de compartir" de inmediato
+    stopAllStreams();
     const recorder = mediaRecorderRef.current;
     if (recorder && recorder.state !== "inactive") {
       recorder.stop();
     }
-    stopAllStreams();
     mediaRecorderRef.current = null;
   }, [stopAllStreams]);
 
@@ -202,11 +205,24 @@ export function useRecorder(
     stopRecordingRef.current = stopRecording;
   }, [stopRecording]);
 
-  const downloadRecording = useCallback(() => {
+  const downloadRecording = useCallback(async (format: "webm" | "mp4" = "webm") => {
     const result = recordingResult;
     if (!result) return;
-    const filename = getRecordingFilename("webm");
-    downloadBlob(result.blob, filename);
+    if (format === "mp4") {
+      setIsConvertingToMp4(true);
+      try {
+        const mp4Blob = await convertWebmToMp4(result.blob);
+        const filename = getRecordingFilename("mp4");
+        downloadBlob(mp4Blob, filename);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Error al convertir a MP4");
+      } finally {
+        setIsConvertingToMp4(false);
+      }
+    } else {
+      const filename = getRecordingFilename("webm");
+      downloadBlob(result.blob, filename);
+    }
   }, [recordingResult]);
 
   const reset = useCallback(() => {
@@ -223,6 +239,7 @@ export function useRecorder(
     startRecording,
     stopRecording,
     downloadRecording,
+    isConvertingToMp4,
     reset,
     screen,
     mic,

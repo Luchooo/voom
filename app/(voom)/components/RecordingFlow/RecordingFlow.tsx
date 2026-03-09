@@ -1,7 +1,9 @@
 'use client';
 
+import { useDeviceAvailability } from '@voom/hooks/useDeviceAvailability';
 import { useRecorder } from '@voom/hooks/useRecorder';
 import { isLowEndDevice } from '@voom/lib/camera';
+import { isDisplayMediaSupported } from '@voom/lib/displayMediaSupport';
 import {
 	clearRecorderStorage,
 	getCameraUnavailable,
@@ -23,10 +25,12 @@ import {
 	type RecordingFlowState,
 } from '@voom/types/recorder';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Spinner } from "../../../components/ui/spinner";
 import {
 	CircularCameraPreview,
 	CountdownStep,
 	DeviceSetupCard,
+	DisplayMediaUnsupportedStep,
 	RecordingOverlay,
 	WelcomeStep,
 } from './steps';
@@ -81,13 +85,25 @@ function getInitialCamera(): StoredCameraOverlay {
  * Flujo de pre-grabación: welcome → device_setup → (screen selection) → countdown → recording → ready.
  * Opciones y posición de cámara se persisten en localStorage.
  */
-export function RecordingFlow() {
+export function RecordingFlow({ showMp4Option = false }: { showMp4Option?: boolean }) {
 	const [flowState, setFlowState] = useState<RecordingFlowState>('welcome');
 	const [options, setOptions] = useState<RecorderOptions>(getInitialOptions);
 	const [cameraState, setCameraState] =
 		useState<StoredCameraOverlay>(getInitialCamera);
 	const [storageKey, setStorageKey] = useState(0);
+	const [downloadMenuOpen, setDownloadMenuOpen] = useState(false);
+	const [displayMediaUnsupported, setDisplayMediaUnsupported] = useState(false);
 	const overlayRef = useRef<CameraOverlayState | null>(null);
+	const flowStateRef = useRef<RecordingFlowState>(flowState);
+	const downloadMenuRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		setDisplayMediaUnsupported(!isDisplayMediaSupported());
+	}, []);
+
+	useEffect(() => {
+		flowStateRef.current = flowState;
+	}, [flowState]);
 
 	useEffect(() => {
 		saveRecorderOptions(options);
@@ -119,17 +135,48 @@ export function RecordingFlow() {
 		setStorageKey((k) => k + 1);
 	}, []);
 
+	const isDeviceSetup = flowState === 'device_setup';
+	const availability = useDeviceAvailability(isDeviceSetup);
+
 	const {
 		error,
 		recordingResult,
 		startRecording,
 		stopRecording,
 		downloadRecording,
+		isConvertingToMp4,
 		reset,
 		status,
 		camera,
+		mic,
 		screen,
 	} = useRecorder(options, overlayRef);
+
+	// Sincronizar switches con dispositivos detectados: sin dispositivo → false; con dispositivo → true.
+	useEffect(() => {
+		if (!isDeviceSetup || availability.isLoading) return;
+		const id = setTimeout(() => {
+			setOptions((prev) => {
+				const updates: Partial<RecorderOptions> = {};
+				updates.camera = availability.hasCamera;
+				updates.microphone = availability.hasMicrophone;
+				return { ...prev, ...updates };
+			});
+		}, 0);
+		return () => clearTimeout(id);
+	}, [isDeviceSetup, availability.isLoading, availability.hasCamera, availability.hasMicrophone]);
+
+	// Cerrar menú de descarga al hacer clic fuera
+	useEffect(() => {
+		if (!downloadMenuOpen) return;
+		const handleClick = (e: MouseEvent) => {
+			if (downloadMenuRef.current && !downloadMenuRef.current.contains(e.target as Node)) {
+				setDownloadMenuOpen(false);
+			}
+		};
+		document.addEventListener("mousedown", handleClick);
+		return () => document.removeEventListener("mousedown", handleClick);
+	}, [downloadMenuOpen]);
 
 	// Si la grabación termina por "Dejar de compartir" u otro motivo, sincronizar la vista.
 	useEffect(() => {
@@ -138,7 +185,7 @@ export function RecordingFlow() {
 		return () => clearTimeout(t);
 	}, [status, flowState]);
 
-	// Sincronizar opción de cámara cuando el hook reporta que no hay dispositivo (evitar switch ON sin cámara).
+	// Sincronizar opción de cámara cuando el hook reporta que no hay dispositivo.
 	useEffect(() => {
 		if (!camera?.deviceNotFound || !options.camera) return;
 		const id = setTimeout(() => {
@@ -147,6 +194,13 @@ export function RecordingFlow() {
 		}, 0);
 		return () => clearTimeout(id);
 	}, [camera?.deviceNotFound, options.camera]);
+
+	// Sincronizar opción de micrófono cuando el hook reporta que no hay dispositivo.
+	useEffect(() => {
+		if (!mic?.deviceNotFound || !options.microphone) return;
+		const id = setTimeout(() => setOptions((prev) => ({ ...prev, microphone: false })), 0);
+		return () => clearTimeout(id);
+	}, [mic?.deviceNotFound, options.microphone]);
 
 	// Si la cámara funciona, quitar el flag para no forzar false en futuras cargas (p. ej. con cámara conectada).
 	useEffect(() => {
@@ -159,9 +213,10 @@ export function RecordingFlow() {
 
 	const handleStartRecordingClick = useCallback(async () => {
 		setFlowState('awaiting_screen_selection');
-		// Si el usuario pulsa "Dejar de compartir" durante countdown (o antes de grabar), volver a configuración
+		// Si el usuario pulsa "Dejar de compartir" durante countdown → volver a configuración.
+		// Si ya está grabando → no cambiar vista; useRecorder detendrá y el efecto pondrá flowState en 'ready'.
 		const stream = await screen.startCapture(options.resolution, () => {
-			setFlowState('device_setup');
+			if (flowStateRef.current !== 'recording') setFlowState('device_setup');
 		});
 		if (!stream) {
 			setFlowState('device_setup');
@@ -232,13 +287,58 @@ export function RecordingFlow() {
 							/>
 						</div>
 						<div className="flex flex-wrap items-center justify-center gap-3">
-							<button
-								type="button"
-								onClick={downloadRecording}
-								className="rounded-lg bg-orange-600 px-6 py-2.5 font-semibold text-white hover:bg-orange-500"
-							>
-								Descargar
-							</button>
+							<div ref={downloadMenuRef} className="relative flex">
+								{showMp4Option ? (
+									<>
+										<button
+											type="button"
+											onClick={() => void downloadRecording("webm")}
+											disabled={isConvertingToMp4}
+											className="flex min-w-[10rem] items-center justify-center gap-2 rounded-l-lg bg-orange-600 px-6 py-2.5 font-semibold text-white hover:bg-orange-500 disabled:opacity-70"
+										>
+											{isConvertingToMp4 && <Spinner size="sm" className="shrink-0" />}
+											{isConvertingToMp4 ? "Descargando…" : "Descargar"}
+										</button>
+										<button
+											type="button"
+											onClick={() => setDownloadMenuOpen((o) => !o)}
+											disabled={isConvertingToMp4}
+											className="rounded-r-lg border border-l-0 border-orange-600 bg-orange-600 px-2 py-2.5 text-white hover:bg-orange-500 disabled:opacity-70"
+											aria-expanded={downloadMenuOpen}
+											aria-haspopup="true"
+											aria-label="Más opciones de descarga"
+										>
+											<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+												<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+											</svg>
+										</button>
+										{downloadMenuOpen && (
+											<div className="absolute left-0 top-full z-10 mt-1 min-w-[180px] rounded-lg border border-border bg-card py-1 shadow-xl">
+												<button
+													type="button"
+													className="w-full px-4 py-2.5 text-left text-sm text-card-foreground hover:bg-muted"
+													onClick={() => {
+														void downloadRecording("mp4");
+														setDownloadMenuOpen(false);
+													}}
+												>
+													Descargar en .mp4
+												</button>
+											</div>
+										)}
+									</>
+								) : (
+									<button
+										type="button"
+										onClick={() => void downloadRecording("webm")}
+										disabled={isConvertingToMp4}
+										className="flex min-w-[10rem] items-center justify-center gap-2 rounded-lg bg-orange-600 px-6 py-2.5 font-semibold text-white hover:bg-orange-500 disabled:opacity-70"
+									>
+										{isConvertingToMp4 && <Spinner size="sm" className="shrink-0" />}
+										{isConvertingToMp4 ? "Descargando…" : "Descargar"}
+									</button>
+								)}
+							</div>
 							<button
 								type="button"
 								onClick={handleReset}
@@ -249,6 +349,14 @@ export function RecordingFlow() {
 						</div>
 					</div>
 				)}
+			</RecordingOverlay>
+		);
+	}
+
+	if (displayMediaUnsupported) {
+		return (
+			<RecordingOverlay>
+				<DisplayMediaUnsupportedStep />
 			</RecordingOverlay>
 		);
 	}
@@ -265,9 +373,13 @@ export function RecordingFlow() {
 						onStartRecording={handleStartRecordingClick}
 						onClearSettings={handleClearSettings}
 						isRequestingScreen={false}
+						cameraAvailable={availability.hasCamera}
 						cameraNotFound={camera?.deviceNotFound ?? false}
+						microphoneAvailable={availability.hasMicrophone}
+						microphoneNotFound={mic?.deviceNotFound ?? false}
+						devicesLoading={availability.isLoading}
 					/>
-					{options.camera && (
+					{options.camera && !camera?.deviceNotFound && (
 						<CircularCameraPreview
 							key={storageKey}
 							stream={camera.stream}
@@ -293,7 +405,11 @@ export function RecordingFlow() {
 						onStartRecording={() => {}}
 						onClearSettings={handleClearSettings}
 						isRequestingScreen
+						cameraAvailable={availability.hasCamera}
 						cameraNotFound={camera?.deviceNotFound ?? false}
+						microphoneAvailable={availability.hasMicrophone}
+						microphoneNotFound={mic?.deviceNotFound ?? false}
+						devicesLoading={availability.isLoading}
 					/>
 					<div className="flex min-h-full items-center justify-center p-8">
 						<p className="text-foreground">

@@ -12,6 +12,9 @@ export type RecordingFrameRate = 30 | 60 | 120;
 /** Segundos de la cuenta regresiva antes de iniciar la grabación */
 export type CountdownSeconds = 3 | 6 | 10;
 
+/** Formato de descarga del video grabado (por defecto webm; mp4 requiere conversión en el navegador). */
+export type DownloadFormat = "webm" | "mp4";
+
 /** Cuatro estados del overlay de cámara: pequeño, grande, pantalla completa o avatar (icono) */
 export type CameraOverlaySize = "small" | "large" | "fullscreen" | "avatar";
 
@@ -51,6 +54,8 @@ export interface RecorderOptions {
   circleDiameterPx?: number;
   /** Segundos de la cuenta regresiva antes de grabar (3, 6 o 10). Por defecto 3. */
   countdownSeconds?: CountdownSeconds;
+  /** Formato de descarga: webm (por defecto) o mp4. MP4 convierte desde WebM en el navegador. */
+  downloadFormat?: DownloadFormat;
 }
 
 export const CIRCLE_DIAMETER_MIN = 100;
