@@ -1,25 +1,15 @@
 import Image from "next/image";
-import Link from "next/link";
+import { LandingAuthCTA } from "./components/landing/LandingAuthCTA";
+import { LandingHeader } from "./components/landing/LandingHeader";
 
 /**
- * Landing tipo Loom: hero, valor, CTA claro "Comenzar a grabar video" → /record.
- * Raíz /; el flujo de grabación vive en /record.
+ * Landing tipo Loom: hero, valor, CTA "Continue with Google" → /record.
+ * Raíz /; el flujo de grabación vive en /record (protegido por auth).
  */
 export default function Home() {
 	return (
 		<div className="min-h-screen flex flex-col bg-background text-foreground">
-			{/* Nav mínima */}
-			<header className="border-b border-border/50">
-				<div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-					<span className="text-lg font-semibold tracking-tight">Voom</span>
-					<Link
-						href="/record"
-						className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-500"
-					>
-						Comenzar a grabar
-					</Link>
-				</div>
-			</header>
+			<LandingHeader />
 
 			{/* Hero */}
 			<main className="flex flex-1 flex-col items-center justify-center px-4 py-16 text-center sm:py-24">
@@ -30,15 +20,7 @@ export default function Home() {
 					Graba tu pantalla y cámara en segundos. Sin instalación, desde el navegador. Descarga al instante.
 				</p>
 				<div className="mt-10">
-					<Link
-						href="/record"
-						className="inline-flex items-center justify-center gap-2 rounded-full bg-orange-600 px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-background"
-					>
-						Comenzar a grabar video
-						<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-						</svg>
-					</Link>
+					<LandingAuthCTA />
 				</div>
 				<div className="mt-12 w-full max-w-5xl overflow-hidden rounded-xl border border-border shadow-2xl">
 					<Image
@@ -98,15 +80,7 @@ export default function Home() {
 						</li>
 					</ul>
 					<div className="mt-12 text-center">
-						<Link
-							href="/record"
-							className="inline-flex items-center gap-2 rounded-full bg-orange-600 px-6 py-3 font-semibold text-white hover:bg-orange-500"
-						>
-							Comenzar a grabar video
-							<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-							</svg>
-						</Link>
+						<LandingAuthCTA variant="sm" />
 					</div>
 				</div>
 			</section>

@@ -661,6 +661,35 @@ export function DeviceSetupCard({
 										/>
 									</button>
 								</label>
+								<label className="flex items-center justify-between gap-2">
+									<div>
+										<p className="text-sm font-medium text-card-foreground">
+											Sonido al iniciar grabación
+										</p>
+										<p className="text-xs text-muted-foreground">
+											Reproduce un aviso cuando comienza la grabación. Si lo desactivas, no se grabará en el video.
+										</p>
+									</div>
+									<button
+										type="button"
+										role="switch"
+										aria-checked={!options.muteStartSound}
+										onClick={() =>
+											setOption('muteStartSound', !options.muteStartSound)
+										}
+										className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+											!options.muteStartSound ? 'bg-green-500' : 'bg-muted'
+										}`}
+									>
+										<span
+											className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-primary shadow transition-transform ${
+												!options.muteStartSound
+													? 'translate-x-5'
+													: 'translate-x-0'
+											}`}
+										/>
+									</button>
+								</label>
 								{onClearSettings && (
 									<Button
 										type="button"
