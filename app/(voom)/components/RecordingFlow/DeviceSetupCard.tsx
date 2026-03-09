@@ -94,15 +94,15 @@ export function DeviceSetupCard({
     (options.videoDeviceId ? "Cámara" : "Predeterminada");
 
   return (
-    <Card className="absolute right-6 top-6 z-10 w-72 border-white/20 bg-black/70 shadow-xl backdrop-blur-md">
+    <Card className="absolute right-6 top-6 z-10 w-72 border-border bg-card/95 shadow-xl backdrop-blur-md">
       <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2 pt-4">
         {view === "devices" ? (
           <>
-            <h3 className="text-sm font-medium text-white">Dispositivos</h3>
+            <h3 className="text-sm font-medium text-card-foreground">Dispositivos</h3>
             <button
               type="button"
               onClick={() => setView("settings")}
-              className="rounded p-1.5 text-white/80 hover:bg-white/15 hover:text-white"
+              className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-card-foreground"
               title="Configuración"
               aria-label="Abrir configuración"
             >
@@ -114,12 +114,12 @@ export function DeviceSetupCard({
             <button
               type="button"
               onClick={() => setView("devices")}
-              className="flex items-center gap-1 rounded p-1 text-white/90 hover:bg-white/15 hover:text-white"
+              className="flex items-center gap-1 rounded p-1 text-muted-foreground hover:bg-muted hover:text-card-foreground"
               aria-label="Volver"
             >
               <BackIcon className="h-4 w-4" />
             </button>
-            <h3 className="text-sm font-medium text-white">Configuración</h3>
+            <h3 className="text-sm font-medium text-card-foreground">Configuración</h3>
             <span className="w-9" />
           </>
         )}
@@ -130,11 +130,11 @@ export function DeviceSetupCard({
             {/* Cámara: título + toggle en una línea; selector en la siguiente */}
             <div className="relative space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2 text-sm font-medium text-white">
+                <span className="flex items-center gap-2 text-sm font-medium text-card-foreground">
                   {options.camera ? (
                     <CameraIcon className="h-4 w-4 shrink-0" />
                   ) : (
-                    <CameraOffIcon className="h-4 w-4 shrink-0 text-white/50" />
+                    <CameraOffIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                   )}
                   Cámara
                 </span>
@@ -148,9 +148,9 @@ export function DeviceSetupCard({
                           aria-checked={false}
                           disabled
                           aria-disabled
-                          className="relative h-6 w-11 shrink-0 cursor-not-allowed rounded-full bg-white/30 opacity-70"
+                          className="relative h-6 w-11 shrink-0 cursor-not-allowed rounded-full bg-muted opacity-70"
                         >
-                          <span className="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow translate-x-0" />
+                          <span className="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-primary shadow translate-x-0" />
                         </button>
                       </span>
                     </TooltipTrigger>
@@ -165,11 +165,11 @@ export function DeviceSetupCard({
                     aria-checked={options.camera}
                     onClick={() => toggle("camera", !options.camera)}
                     className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                      options.camera ? "bg-green-500" : "bg-white/30"
+                      options.camera ? "bg-green-500" : "bg-muted"
                     }`}
                   >
                     <span
-                      className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                      className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-primary shadow transition-transform ${
                         options.camera ? "translate-x-5" : "translate-x-0"
                       }`}
                     />
@@ -182,28 +182,28 @@ export function DeviceSetupCard({
                   onClick={cameraNotFound ? undefined : openCameraDropdown}
                   disabled={cameraNotFound}
                   aria-disabled={cameraNotFound}
-                  className={`flex w-full items-center justify-between gap-2 rounded-lg border border-white/25 px-3 py-2.5 text-left text-sm text-white ${
+                  className={`flex w-full items-center justify-between gap-2 rounded-lg border border-border px-3 py-2.5 text-left text-sm text-card-foreground ${
                     cameraNotFound
-                      ? "cursor-not-allowed bg-white/5 opacity-60"
-                      : "bg-white/5 hover:border-white/40 hover:bg-white/10"
+                      ? "cursor-not-allowed bg-muted/50 opacity-60"
+                      : "bg-muted/50 hover:bg-muted hover:border-muted-foreground/30"
                   }`}
                   aria-expanded={openDropdown === "camera"}
                   aria-haspopup="listbox"
                 >
                   <span className="min-w-0 truncate">{selectedCameraLabel}</span>
                   <ChevronDownIcon
-                    className={`h-4 w-4 shrink-0 text-white/70 transition-transform ${openDropdown === "camera" ? "rotate-180" : ""}`}
+                    className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${openDropdown === "camera" ? "rotate-180" : ""}`}
                   />
                 </button>
                 {openDropdown === "camera" && (
-                  <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-auto rounded-lg border border-white/25 bg-neutral-900 py-1 shadow-xl">
+                  <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-auto rounded-lg border border-border bg-card py-1 shadow-xl">
                   <button
                     type="button"
                     onClick={() => {
                       setOption("videoDeviceId", undefined);
                       setOpenDropdown(null);
                     }}
-                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-white hover:bg-white/10"
+                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-card-foreground hover:bg-muted"
                   >
                     <CameraIcon className="h-4 w-4 shrink-0" />
                     Predeterminada
@@ -216,8 +216,8 @@ export function DeviceSetupCard({
                         setOption("videoDeviceId", d.deviceId);
                         setOpenDropdown(null);
                       }}
-                      className={`flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-white/10 ${
-                        options.videoDeviceId === d.deviceId ? "bg-blue-600/40 text-white" : "text-white/90"
+                      className={`flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-muted ${
+                        options.videoDeviceId === d.deviceId ? "bg-accent text-accent-foreground" : "text-card-foreground"
                       }`}
                     >
                       <CameraIcon className="h-4 w-4 shrink-0" />
@@ -235,11 +235,11 @@ export function DeviceSetupCard({
             {/* Micrófono: mismo patrón */}
             <div className="relative space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2 text-sm font-medium text-white">
+                <span className="flex items-center gap-2 text-sm font-medium text-card-foreground">
                   {options.microphone ? (
                     <IoMicOutline className="h-4 w-4 shrink-0" />
                   ) : (
-                    <IoMicOffOutline className="h-4 w-4 shrink-0 text-white/50" />
+                    <IoMicOffOutline className="h-4 w-4 shrink-0 text-muted-foreground" />
                   )}
                   Micrófono
                 </span>
@@ -249,11 +249,11 @@ export function DeviceSetupCard({
                   aria-checked={options.microphone}
                   onClick={() => toggle("microphone", !options.microphone)}
                   className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                    options.microphone ? "bg-green-500" : "bg-white/30"
+                    options.microphone ? "bg-green-500" : "bg-muted"
                   }`}
                 >
                   <span
-                    className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                    className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-primary shadow transition-transform ${
                       options.microphone ? "translate-x-5" : "translate-x-0"
                     }`}
                   />
@@ -263,24 +263,24 @@ export function DeviceSetupCard({
                 <button
                   type="button"
                   onClick={openMicDropdown}
-                  className="flex w-full items-center justify-between gap-2 rounded-lg border border-white/25 bg-white/5 px-3 py-2.5 text-left text-sm text-white hover:border-white/40 hover:bg-white/10"
+                  className="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-left text-sm text-card-foreground hover:bg-muted hover:border-muted-foreground/30"
                   aria-expanded={openDropdown === "mic"}
                   aria-haspopup="listbox"
                 >
                   <span className="min-w-0 truncate">{selectedMicLabel}</span>
                   <ChevronDownIcon
-                    className={`h-4 w-4 shrink-0 text-white/70 transition-transform ${openDropdown === "mic" ? "rotate-180" : ""}`}
+                    className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${openDropdown === "mic" ? "rotate-180" : ""}`}
                   />
                 </button>
                 {openDropdown === "mic" && (
-                  <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-auto rounded-lg border border-white/25 bg-neutral-900 py-1 shadow-xl">
+                  <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-auto rounded-lg border border-border bg-card py-1 shadow-xl">
                   <button
                     type="button"
                     onClick={() => {
                       setOption("audioDeviceId", undefined);
                       setOpenDropdown(null);
                     }}
-                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-white hover:bg-white/10"
+                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-card-foreground hover:bg-muted"
                   >
                     <IoMicOutline className="h-4 w-4 shrink-0" />
                     Predeterminado
@@ -293,8 +293,8 @@ export function DeviceSetupCard({
                         setOption("audioDeviceId", d.deviceId);
                         setOpenDropdown(null);
                       }}
-                      className={`flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-white/10 ${
-                        options.audioDeviceId === d.deviceId ? "bg-blue-600/40 text-white" : "text-white/90"
+                      className={`flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-muted ${
+                        options.audioDeviceId === d.deviceId ? "bg-accent text-accent-foreground" : "text-card-foreground"
                       }`}
                     >
                       <IoMicOutline className="h-4 w-4 shrink-0" />
@@ -323,29 +323,23 @@ export function DeviceSetupCard({
         {view === "settings" && (
           <div className="space-y-5">
             <div>
-              <p className="mb-1 text-sm font-medium text-white">Calidad de video</p>
-              <p className="mb-2 text-xs text-white/60">
+              <p className="mb-1 text-sm font-medium text-card-foreground">Calidad de video</p>
+              <p className="mb-2 text-xs text-muted-foreground">
                 Resolución de la captura de pantalla
               </p>
               <select
                 value={options.resolution}
                 onChange={(e) => setOption("resolution", e.target.value as RecordingResolution)}
-                className="w-full rounded-lg border border-white/20 bg-white/10 py-2 pl-3 pr-8 text-sm text-white focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                className="w-full rounded-lg border border-border bg-muted/50 py-2 pl-3 pr-8 text-sm text-card-foreground focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
               >
-                <option value="720p" className="bg-neutral-900 text-white">
-                  720p
-                </option>
-                <option value="1080p" className="bg-neutral-900 text-white">
-                  1080p
-                </option>
-                <option value="native" className="bg-neutral-900 text-white">
-                  Nativa
-                </option>
+                <option value="720p">720p</option>
+                <option value="1080p">1080p</option>
+                <option value="native">Nativa</option>
               </select>
             </div>
             <div>
-              <p className="mb-1 text-sm font-medium text-white">Fotogramas por segundo</p>
-              <p className="mb-2 text-xs text-white/60">
+              <p className="mb-1 text-sm font-medium text-card-foreground">Fotogramas por segundo</p>
+              <p className="mb-2 text-xs text-muted-foreground">
                 FPS del video grabado (30, 60 o 120)
               </p>
               <select
@@ -353,10 +347,10 @@ export function DeviceSetupCard({
                 onChange={(e) =>
                   setOption("frameRate", Number(e.target.value) as RecordingFrameRate)
                 }
-                className="w-full rounded-lg border border-white/20 bg-white/10 py-2 pl-3 pr-8 text-sm text-white focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                className="w-full rounded-lg border border-border bg-muted/50 py-2 pl-3 pr-8 text-sm text-card-foreground focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
               >
                 {FPS_OPTIONS.map((fps) => (
-                  <option key={fps} value={fps} className="bg-neutral-900 text-white">
+                  <option key={fps} value={fps}>
                     {fps} FPS
                   </option>
                 ))}
@@ -364,8 +358,8 @@ export function DeviceSetupCard({
             </div>
             <label className="flex items-center justify-between gap-2">
               <div>
-                <p className="text-sm font-medium text-white">Modo rendimiento</p>
-                <p className="text-xs text-white/60">
+                <p className="text-sm font-medium text-card-foreground">Modo rendimiento</p>
+                <p className="text-xs text-muted-foreground">
                   Menos carga en PCs con poca RAM o CPU
                 </p>
               </div>
@@ -377,11 +371,11 @@ export function DeviceSetupCard({
                   setOption("performanceMode", !(options.performanceMode ?? false))
                 }
                 className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                  options.performanceMode ? "bg-green-500" : "bg-white/30"
+                  options.performanceMode ? "bg-green-500" : "bg-muted"
                 }`}
               >
                 <span
-                  className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                  className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-primary shadow transition-transform ${
                     options.performanceMode ? "translate-x-5" : "translate-x-0"
                   }`}
                 />
@@ -389,8 +383,8 @@ export function DeviceSetupCard({
             </label>
             <label className="flex items-center justify-between gap-2">
               <div>
-                <p className="text-sm font-medium text-white">Voltear cámara</p>
-                <p className="text-xs text-white/60">
+                <p className="text-sm font-medium text-card-foreground">Voltear cámara</p>
+                <p className="text-xs text-muted-foreground">
                   Voltea la orientación de la cámara (espejo)
                 </p>
               </div>
@@ -402,11 +396,11 @@ export function DeviceSetupCard({
                   setOption("flipCamera", options.flipCamera === false)
                 }
                 className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                  options.flipCamera !== false ? "bg-green-500" : "bg-white/30"
+                  options.flipCamera !== false ? "bg-green-500" : "bg-muted"
                 }`}
               >
                 <span
-                  className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                  className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-primary shadow transition-transform ${
                     options.flipCamera !== false ? "translate-x-5" : "translate-x-0"
                   }`}
                 />
@@ -414,12 +408,12 @@ export function DeviceSetupCard({
             </label>
             <div>
               <div className="mb-1 flex items-center justify-between">
-                <p className="text-sm font-medium text-white">Tamaño del círculo de cámara</p>
-                <span className="text-xs text-white/60">
+                <p className="text-sm font-medium text-card-foreground">Tamaño del círculo de cámara</p>
+                <span className="text-xs text-muted-foreground">
                   {options.circleDiameterPx ?? CIRCLE_DIAMETER_DEFAULT} px
                 </span>
               </div>
-              <p className="mb-2 text-xs text-white/60">
+              <p className="mb-2 text-xs text-muted-foreground">
                 Diámetro del círculo (100–600 px)
               </p>
               <input
@@ -438,7 +432,7 @@ export function DeviceSetupCard({
               <button
                 type="button"
                 onClick={onClearSettings}
-                className="w-full rounded-lg border border-white/20 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white"
+                className="w-full rounded-lg border border-border py-2 text-sm text-muted-foreground hover:bg-muted hover:text-card-foreground"
               >
                 Borrar configuración guardada
               </button>

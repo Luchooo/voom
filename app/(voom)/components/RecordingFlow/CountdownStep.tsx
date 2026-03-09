@@ -22,12 +22,12 @@ export function CountdownStep({ onComplete, seconds = 3 }: CountdownStepProps) {
 
   return (
     <div className="flex min-h-full flex-col items-center justify-center p-8">
-      <div className="flex h-32 w-32 items-center justify-center rounded-full bg-blue-600 shadow-2xl ring-4 ring-white/30">
+      <div className="flex h-32 w-32 items-center justify-center rounded-full bg-blue-600 shadow-2xl ring-4 ring-foreground/30">
         <span className="text-5xl font-bold tabular-nums text-white">
           {count > 0 ? count : ""}
         </span>
       </div>
-      <p className="mt-6 text-sm font-medium text-white/90">
+      <p className="mt-6 text-sm font-medium text-foreground">
         {count > 0 ? `Grabación en ${count}…` : "¡Comienza la grabación!"}
       </p>
     </div>
