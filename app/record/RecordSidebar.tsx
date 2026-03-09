@@ -3,6 +3,11 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import {
+	Avatar,
+	AvatarFallback,
+	AvatarImage,
+} from "../components/ui/avatar";
+import {
 	Sidebar,
 	SidebarContent,
 	SidebarFooter,
@@ -45,19 +50,12 @@ export function RecordSidebar() {
 						<SidebarMenu>
 							<SidebarMenuItem>
 								<SidebarMenuButton className="pointer-events-none cursor-default">
-									{photoURL ? (
-										<img
-											src={photoURL}
-											alt=""
-											className="size-8 rounded-full object-cover"
-											width={32}
-											height={32}
-										/>
-									) : (
-										<span className="flex size-8 items-center justify-center rounded-full bg-muted text-sm font-medium text-muted-foreground">
+									<Avatar className="size-8 shrink-0">
+										<AvatarImage src={photoURL ?? undefined} alt={displayName} />
+										<AvatarFallback>
 											{displayName.charAt(0).toUpperCase()}
-										</span>
-									)}
+										</AvatarFallback>
+									</Avatar>
 									<span className="truncate">{displayName}</span>
 								</SidebarMenuButton>
 							</SidebarMenuItem>

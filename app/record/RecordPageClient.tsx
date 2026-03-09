@@ -22,7 +22,7 @@ export function RecordPageClient({ showMp4Option }: RecordPageClientProps) {
 				<header className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-4">
 					<SidebarTrigger />
 					<span className="text-sm font-medium text-muted-foreground">
-						Grabar video lola
+						Grabar video
 					</span>
 				</header>
 				<main className="flex flex-1 flex-col items-center justify-center overflow-auto p-6">

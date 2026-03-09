@@ -40,6 +40,7 @@ const AvatarImage = React.forwardRef<
 		if (!src) setShowFallback(true);
 	}, [src, setShowFallback]);
 	return (
+		// eslint-disable-next-line @next/next/no-img-element -- Avatar uses dynamic external URLs (e.g. Firebase) and needs onLoad/onError for fallback
 		<img
 			ref={ref}
 			src={src}
