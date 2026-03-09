@@ -56,6 +56,8 @@ export interface RecorderOptions {
   countdownSeconds?: CountdownSeconds;
   /** Formato de descarga: webm (por defecto) o mp4. MP4 convierte desde WebM en el navegador. */
   downloadFormat?: DownloadFormat;
+  /** Si true, no se reproduce el sonido de inicio de grabación (evita que salga en el video). */
+  muteStartSound?: boolean;
 }
 
 export const CIRCLE_DIAMETER_MIN = 100;

@@ -1,24 +1,35 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface CountdownStepProps {
   onComplete: () => void;
+  /** Llamado cuando quedan 2 segundos (cuenta = 2), para reproducir el aviso sin que salga en el video */
+  onReachOne?: () => void;
   seconds?: number;
 }
 
 /** Cuenta regresiva 3, 2, 1 y luego llama onComplete */
-export function CountdownStep({ onComplete, seconds = 3 }: CountdownStepProps) {
+export function CountdownStep({
+  onComplete,
+  onReachOne,
+  seconds = 3,
+}: CountdownStepProps) {
   const [count, setCount] = useState(seconds);
+  const hasPlayedSound = useRef(false);
 
   useEffect(() => {
     if (count <= 0) {
       onComplete();
       return;
     }
+    if (count === 2 && !hasPlayedSound.current) {
+      hasPlayedSound.current = true;
+      onReachOne?.();
+    }
     const t = setTimeout(() => setCount((c) => c - 1), 1000);
     return () => clearTimeout(t);
-  }, [count, onComplete]);
+  }, [count, onComplete, onReachOne]);
 
   return (
     <div className="flex min-h-full flex-col items-center justify-center p-8">

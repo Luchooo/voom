@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { AuthProvider } from '@/context/auth-context';
 import { ThemeProvider } from './components/theme-provider';
 import { TooltipProvider } from './components/ui/tooltip';
 import './globals.css';
@@ -31,14 +32,16 @@ export default function RootLayout({
 				className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground`}
 				suppressHydrationWarning
 			>
-				<ThemeProvider
-					attribute="class"
-					defaultTheme="system"
-					enableSystem
-					disableTransitionOnChange
-				>
-					<TooltipProvider delayDuration={300}>{children}</TooltipProvider>
-				</ThemeProvider>
+				<AuthProvider>
+					<ThemeProvider
+						attribute="class"
+						defaultTheme="system"
+						enableSystem
+						disableTransitionOnChange
+					>
+						<TooltipProvider delayDuration={300}>{children}</TooltipProvider>
+					</ThemeProvider>
+				</AuthProvider>
 			</body>
 		</html>
 	);

@@ -49,6 +49,7 @@ const DEFAULT_OPTIONS: RecorderOptions = {
 	flipCamera: true,
 	circleDiameterPx: CIRCLE_DIAMETER_DEFAULT,
 	countdownSeconds: 3,
+	muteStartSound: false,
 };
 
 const DEFAULT_CAMERA: StoredCameraOverlay = {
@@ -245,6 +246,17 @@ export function RecordingFlow({
 		}
 		setFlowState('countdown');
 	}, [screen, options.resolution]);
+
+	const handleReachOne = useCallback(() => {
+		if (options.muteStartSound === true) return;
+		try {
+			const audio = new Audio('/init.mp3');
+			audio.volume = 1;
+			void audio.play();
+		} catch {
+			// Ignorar si el navegador no permite reproducir
+		}
+	}, [options.muteStartSound]);
 
 	const handleCountdownComplete = useCallback(() => {
 		const winW = typeof window !== 'undefined' ? window.innerWidth : 1920;
@@ -498,6 +510,7 @@ export function RecordingFlow({
 			{flowState === 'countdown' && (
 				<CountdownStep
 					onComplete={handleCountdownComplete}
+					onReachOne={handleReachOne}
 					seconds={options.countdownSeconds ?? 3}
 				/>
 			)}

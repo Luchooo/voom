@@ -70,3 +70,21 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
+
+/* Cursores para elementos del Sidebar (shadcn) */
+[data-sidebar="menu-button"] {
+  cursor: pointer;
+}
+
+[data-sidebar="menu-button"]:disabled,
+[data-sidebar="menu-button"][data-disabled="true"] {
+  cursor: not-allowed;
+}
+
+[data-sidebar="rail"] {
+  cursor: ew-resize;
+}
+
+[data-sidebar="group-label"] {
+  cursor: default;
+}

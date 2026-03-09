@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { mp4Option } from "../flags";
-import { RecorderPage } from "@voom/RecorderPage";
+import { RecordPageClient } from "./RecordPageClient";
 
 export const metadata: Metadata = {
 	title: "Grabar video | Voom",
@@ -8,10 +8,10 @@ export const metadata: Metadata = {
 };
 
 /**
- * Página de grabación: flujo completo (bienvenida, dispositivos, countdown, grabar, preview, editar).
- * La landing está en / y redirige aquí con el CTA "Comenzar a grabar video".
+ * Página de grabación (protegida): flujo completo tras login con Google.
+ * Middleware redirige a / si no hay sesión; el cliente muestra loading y logout.
  */
 export default async function RecordPage() {
 	const showMp4Option = await mp4Option();
-	return <RecorderPage showMp4Option={showMp4Option} />;
+	return <RecordPageClient showMp4Option={showMp4Option} />;
 }
