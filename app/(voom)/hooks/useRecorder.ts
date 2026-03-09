@@ -17,6 +17,7 @@ import type {
   RecorderStatus,
   RecordingResolution,
 } from "@voom/types/recorder";
+import { CIRCLE_DIAMETER_DEFAULT } from "@voom/types/recorder";
 import { useScreenCapture } from "./useScreenCapture";
 import { useMicrophone } from "./useMicrophone";
 import { useCamera } from "./useCamera";
@@ -50,7 +51,8 @@ export function useRecorder(
   const camera = useCamera(
     options.camera,
     options.performanceMode ?? false,
-    options.videoDeviceId
+    options.videoDeviceId,
+    options.circleDiameterPx ?? CIRCLE_DIAMETER_DEFAULT
   );
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);

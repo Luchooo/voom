@@ -1,6 +1,7 @@
 'use client';
 
 import { useRecorder } from '@voom/hooks/useRecorder';
+import { isLowEndDevice } from '@voom/lib/camera';
 import {
 	clearRecorderStorage,
 	getCameraUnavailable,
@@ -65,6 +66,8 @@ function getInitialOptions(): RecorderOptions {
 	};
 	// Si la última vez no había cámara, cargar con cámara desactivada para evitar que el switch aparezca ON al refrescar.
 	if (getCameraUnavailable()) merged.camera = false;
+	// En dispositivos de bajo rendimiento, activar modo rendimiento si es la primera carga (sin opciones guardadas).
+	if (loaded == null && isLowEndDevice()) merged.performanceMode = true;
 	return merged;
 }
 
