@@ -8,8 +8,8 @@ import { RecordingFlow } from "@voom/components/RecordingFlow";
  */
 export function RecorderPage({ showMp4Option = false }: { showMp4Option?: boolean }) {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-6">
+    <div className="h-full min-h-0 w-full">
       <RecordingFlow showMp4Option={showMp4Option} />
-    </main>
+    </div>
   );
 }

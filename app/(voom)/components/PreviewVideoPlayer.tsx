@@ -173,21 +173,34 @@ export const PreviewVideoPlayer = forwardRef<
 	const total = duration > 0 ? duration : 0;
 	const progress = total > 0 ? (currentTime / total) * 100 : 0;
 
+	const fsRoot = isFullscreen
+		? "h-full min-h-0 w-full max-h-[100dvh] rounded-none border-0 bg-black shadow-none"
+		: "";
+	const fsVideoShell = isFullscreen
+		? "flex min-h-0 flex-1 items-center justify-center"
+		: "";
+	const videoClass = isFullscreen
+		? "max-h-full max-w-full h-auto w-auto object-contain bg-black"
+		: "mx-auto block h-auto max-h-[min(58vh,calc(100svh-20rem))] w-full object-contain bg-black";
+
 	return (
 		<div
 			ref={containerRef}
-			className={`flex flex-col overflow-hidden rounded-xl border border-border bg-neutral-900 shadow-2xl ${className}`}
+			className={`flex flex-col overflow-hidden rounded-xl border border-border bg-neutral-900 shadow-2xl ${fsRoot} ${className}`}
 		>
-			<video
-				ref={videoRef}
-				src={src}
-				playsInline
-				className="h-auto w-full bg-black"
-				onClick={togglePlay}
-				preload="metadata"
-			/>
+			{/* En embebido: altura natural. En :fullscreen el contenedor llena el viewport: el área del vídeo crece (flex-1) y el vídeo se escala con object-contain para no dejar un bloque vacío debajo de los controles. */}
+			<div className={`w-full bg-black ${fsVideoShell}`}>
+				<video
+					ref={videoRef}
+					src={src}
+					playsInline
+					className={videoClass}
+					onClick={togglePlay}
+					preload="metadata"
+				/>
+			</div>
 			{/* Barra de controles (estilo Loom: fondo oscuro, barra roja de progreso) */}
-			<div className="flex flex-col gap-1 bg-neutral-900 px-3 py-2">
+			<div className="flex shrink-0 flex-col gap-1 bg-neutral-900 px-3 py-2">
 				{/* Barra de progreso */}
 				<div
 					role="slider"

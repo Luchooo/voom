@@ -9,7 +9,7 @@ interface WelcomeStepProps {
 /** Paso inicial: botón central "Grabar" como punto de entrada */
 export function WelcomeStep({ onStart }: WelcomeStepProps) {
 	return (
-		<div className="flex min-h-full items-center justify-center p-8">
+		<div className="flex h-full min-h-0 items-center justify-center p-8">
 			<Button
 				type="button"
 				onClick={onStart}

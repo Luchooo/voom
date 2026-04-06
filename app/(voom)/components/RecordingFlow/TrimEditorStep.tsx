@@ -117,22 +117,21 @@ export function TrimEditorStep({
 	const segmentDuration = endClamped - startClamped;
 
 	return (
-		<div className="flex min-h-full flex-col">
-			{/* Mismo tamaño y centrado que la preview "Grabación lista": max-w-4xl, h-auto */}
-			<div className="flex flex-1 flex-col items-center justify-center gap-6 p-6">
-				<p className="text-center text-sm text-muted-foreground">
+		<div className="flex h-full min-h-0 flex-col overflow-hidden">
+			<div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 overflow-hidden px-6 pt-3 pb-[220px]">
+				<p className="shrink-0 text-center text-sm text-muted-foreground">
 					Recorta el inicio o el final. Mín. {MIN_SEGMENT_S} s.
 				</p>
-				<div className="w-full max-w-4xl overflow-hidden rounded-xl border border-border bg-neutral-900 shadow-2xl">
+				<div className="w-full max-w-4xl shrink-0">
 					<PreviewVideoPlayer
 						ref={playerRef}
 						src={videoUrl}
-						className="h-auto w-full"
+						className="w-full max-w-full"
 					/>
 				</div>
 			</div>
 
-			{/* Barra de opciones de recorte fija al fondo */}
+			{/* Barra al fondo del overlay (left-0: el overlay ya está desplazado con el sidebar; no repetir inset) */}
 			<div className="fixed bottom-0 left-0 right-0 z-20 border-t border-border bg-background/95 px-4 py-4 shadow-[0_-4px_12px_rgba(0,0,0,0.15)] backdrop-blur-sm">
 				<div className="mx-auto flex max-w-4xl flex-col gap-4">
 					{trimError && (
@@ -211,13 +210,13 @@ export function TrimEditorStep({
 									</AlertDialogFooter>
 								</AlertDialogContent>
 							</AlertDialog>
-<Button
-							type="button"
-							variant="secondary"
-							size="lg"
-							disabled={isTrimming}
-							onClick={onCancel}
-							className="border-2 border-border"
+							<Button
+								type="button"
+								variant="secondary"
+								size="lg"
+								disabled={isTrimming}
+								onClick={onCancel}
+								className="border-2 border-border"
 							>
 								Cancelar
 							</Button>
@@ -225,9 +224,6 @@ export function TrimEditorStep({
 					</div>
 				</div>
 			</div>
-
-			{/* Espaciador para que el contenido no quede oculto tras la barra fija */}
-			<div className="h-[200px] shrink-0" aria-hidden />
 		</div>
 	);
 }

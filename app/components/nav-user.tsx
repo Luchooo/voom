@@ -26,7 +26,7 @@ import {
 export function NavUser() {
 	const { user, logout } = useAuth();
 	const router = useRouter();
-	const { isMobile } = useSidebar();
+	const { isMobile, state } = useSidebar();
 
 	const displayName =
 		user?.displayName ?? user?.email?.split('@')[0] ?? 'Usuario';
@@ -43,14 +43,17 @@ export function NavUser() {
 			<SidebarMenuItem>
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
-						<SidebarMenuButton className="h-auto py-2 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground">
-							<Avatar className="h-8 w-8 rounded-lg">
+						<SidebarMenuButton
+							className="h-auto min-w-0 py-2 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground group-data-[state=collapsed]/sidebar:size-9 group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:p-0 group-data-[state=collapsed]/sidebar:py-0"
+							title={state === 'collapsed' ? displayName : undefined}
+						>
+							<Avatar className="h-8 w-8 shrink-0 rounded-lg">
 								<AvatarImage src={photoURL || undefined} alt={displayName} />
 								<AvatarFallback className="rounded-lg">
 									{initial}
 								</AvatarFallback>
 							</Avatar>
-							<div className="grid flex-1 text-left text-sm leading-tight">
+							<div className="grid min-w-0 flex-1 text-left text-sm leading-tight group-data-[state=collapsed]/sidebar:hidden">
 								<span className="truncate font-medium">{displayName}</span>
 								{email && (
 									<span className="truncate text-xs text-muted-foreground">
@@ -58,7 +61,7 @@ export function NavUser() {
 									</span>
 								)}
 							</div>
-							<IoEllipsisVertical className="ml-auto size-4" />
+							<IoEllipsisVertical className="ml-auto size-4 shrink-0 group-data-[state=collapsed]/sidebar:hidden" />
 						</SidebarMenuButton>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent

@@ -1,5 +1,6 @@
 'use client';
 
+import { useAuth } from '@/hooks/useAuth';
 import { PreviewVideoPlayer } from '@voom/components/PreviewVideoPlayer';
 import { useDeviceAvailability } from '@voom/hooks/useDeviceAvailability';
 import { useRecorder } from '@voom/hooks/useRecorder';
@@ -24,7 +25,6 @@ import {
 	type RecorderOptions,
 	type RecordingFlowState,
 } from '@voom/types/recorder';
-import { useAuth } from '@/hooks/useAuth';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '../../../components/ui/button';
 import { Spinner } from '../../../components/ui/spinner';
@@ -147,8 +147,13 @@ export function RecordingFlow({
 	const availability = useDeviceAvailability(isDeviceSetup);
 
 	const overlayIsAvatar = cameraState.size === 'avatar';
+	/** Cámara encendida en configuración y hasta que empiece la grabación (modal + cuenta atrás), para no cortar el stream. */
 	const cameraPreviewVideoEnabled =
-		options.camera && flowState === 'device_setup' && !overlayIsAvatar;
+		options.camera &&
+		!overlayIsAvatar &&
+		(flowState === 'device_setup' ||
+			flowState === 'awaiting_screen_selection' ||
+			flowState === 'countdown');
 	const { user } = useAuth();
 	const avatarPhotoUrl = user?.photoURL ?? null;
 
@@ -211,12 +216,13 @@ export function RecordingFlow({
 		return () => document.removeEventListener('mousedown', handleClick);
 	}, [downloadMenuOpen]);
 
-	// Si la grabación termina por "Dejar de compartir" u otro motivo, sincronizar la vista.
+	// Cuando el hook tiene video listo, pasar a la pantalla "Grabación lista" (no antes: evita overlay vacío / negro).
 	useEffect(() => {
 		if (status !== 'ready' || flowState !== 'recording') return;
+		if (versions.length === 0) return;
 		const t = setTimeout(() => setFlowState('ready'), 0);
 		return () => clearTimeout(t);
-	}, [status, flowState]);
+	}, [status, flowState, versions.length]);
 
 	// Sincronizar opción de cámara cuando el hook reporta que no hay dispositivo.
 	useEffect(() => {
@@ -293,7 +299,6 @@ export function RecordingFlow({
 
 	const handleStopRecording = useCallback(() => {
 		stopRecording();
-		setFlowState('ready');
 	}, [stopRecording]);
 
 	const handleDiscardAndRecordAgain = useCallback(() => {
@@ -321,15 +326,16 @@ export function RecordingFlow({
 		return (
 			<RecordingOverlay>
 				{flowState === 'recording' && (
-					<div className="flex min-h-full flex-col items-center justify-center gap-6 p-8">
+					<div className="flex h-full min-h-0 flex-col items-center justify-center gap-6 overflow-hidden p-8">
 						<div className="rounded-full bg-orange-500/20 px-4 py-2 text-sm font-medium text-orange-200">
-							Grabando…
+							{status === 'stopping' ? 'Finalizando…' : 'Grabando…'}
 						</div>
 						<Button
 							type="button"
 							variant="orange"
 							size="lg"
 							onClick={handleStopRecording}
+							disabled={status === 'stopping'}
 							className="px-6 py-2.5 font-semibold"
 						>
 							Detener
@@ -346,17 +352,17 @@ export function RecordingFlow({
 					/>
 				)}
 				{flowState === 'ready' && recordingResult && (
-					<div className="flex min-h-full flex-col items-center justify-center gap-6 p-6">
-						<p className="text-sm text-foreground">
+					<div className="flex h-full min-h-0 w-full flex-col items-center justify-center gap-3 overflow-hidden p-4 sm:gap-4 sm:p-6">
+						<p className="shrink-0 text-sm text-foreground">
 							Grabación lista ({recordingResult.durationSeconds.toFixed(1)} s)
 						</p>
-						<div className="w-full max-w-4xl">
+						<div className="w-full max-w-4xl shrink-0">
 							<PreviewVideoPlayer
 								src={recordingResult.url}
-								className="h-auto w-full"
+								className="w-full max-w-full"
 							/>
 						</div>
-						<div className="flex flex-wrap items-center justify-center gap-3">
+						<div className="flex shrink-0 flex-wrap items-center justify-center gap-3">
 							<div ref={downloadMenuRef} className="relative flex">
 								{showMp4Option ? (
 									<>
@@ -373,17 +379,17 @@ export function RecordingFlow({
 											)}
 											{isConvertingToMp4 ? 'Descargando…' : 'Descargar'}
 										</Button>
-<Button
-										type="button"
-										variant="orange"
-										size="icon"
-										disabled={isConvertingToMp4}
-										onClick={() => setDownloadMenuOpen((o) => !o)}
-										aria-expanded={downloadMenuOpen}
-										aria-haspopup="true"
-										aria-label="Más opciones de descarga"
-										className="h-10 w-10 rounded-l-none border-l border-white/20 [&_svg]:h-5 [&_svg]:w-5"
-									>
+										<Button
+											type="button"
+											variant="orange"
+											size="icon"
+											disabled={isConvertingToMp4}
+											onClick={() => setDownloadMenuOpen((o) => !o)}
+											aria-expanded={downloadMenuOpen}
+											aria-haspopup="true"
+											aria-label="Más opciones de descarga"
+											className="h-10 w-10 rounded-l-none border-l border-white/20 [&_svg]:h-5 [&_svg]:w-5"
+										>
 											<svg
 												fill="none"
 												stroke="currentColor"
@@ -518,7 +524,7 @@ export function RecordingFlow({
 						devicesLoading={availability.isLoading}
 						cameraOverlaySize={cameraState.size}
 					/>
-					<div className="flex min-h-full items-center justify-center p-8">
+					<div className="flex h-full min-h-0 items-center justify-center overflow-hidden p-8">
 						<p className="text-foreground">
 							Selecciona qué compartir en el diálogo del navegador…
 						</p>

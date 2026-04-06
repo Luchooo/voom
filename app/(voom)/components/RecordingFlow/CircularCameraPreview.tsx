@@ -282,6 +282,7 @@ className="h-10 w-10 [&_svg]:h-5 [&_svg]:w-5"
 								className="object-cover"
 								sizes={`${circlePx}px`}
 								priority
+								referrerPolicy="no-referrer"
 							/>
 						</div>
 					) : (
