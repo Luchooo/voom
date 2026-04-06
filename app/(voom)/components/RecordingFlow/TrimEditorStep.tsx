@@ -122,17 +122,17 @@ export function TrimEditorStep({
 				<p className="shrink-0 text-center text-sm text-muted-foreground">
 					Recorta el inicio o el final. Mín. {MIN_SEGMENT_S} s.
 				</p>
-				<div className="flex min-h-0 w-full max-w-4xl flex-1 flex-col justify-center overflow-hidden">
+				<div className="w-full max-w-4xl shrink-0">
 					<PreviewVideoPlayer
 						ref={playerRef}
 						src={videoUrl}
-						className="h-full max-h-full min-h-0 w-full"
+						className="w-full max-w-full"
 					/>
 				</div>
 			</div>
 
-			{/* Barra de opciones de recorte fija al fondo */}
-			<div className="fixed bottom-0 left-0 right-0 z-20 border-t border-border bg-background/95 px-4 py-4 shadow-[0_-4px_12px_rgba(0,0,0,0.15)] backdrop-blur-sm md:left-(--sidebar-width,0) group-data-[state=collapsed]/sidebar:md:left-14">
+			{/* Barra al fondo del overlay (left-0: el overlay ya está desplazado con el sidebar; no repetir inset) */}
+			<div className="fixed bottom-0 left-0 right-0 z-20 border-t border-border bg-background/95 px-4 py-4 shadow-[0_-4px_12px_rgba(0,0,0,0.15)] backdrop-blur-sm">
 				<div className="mx-auto flex max-w-4xl flex-col gap-4">
 					{trimError && (
 						<p className="rounded-lg bg-destructive/15 px-4 py-2 text-sm text-destructive">
@@ -210,13 +210,13 @@ export function TrimEditorStep({
 									</AlertDialogFooter>
 								</AlertDialogContent>
 							</AlertDialog>
-<Button
-							type="button"
-							variant="secondary"
-							size="lg"
-							disabled={isTrimming}
-							onClick={onCancel}
-							className="border-2 border-border"
+							<Button
+								type="button"
+								variant="secondary"
+								size="lg"
+								disabled={isTrimming}
+								onClick={onCancel}
+								className="border-2 border-border"
 							>
 								Cancelar
 							</Button>

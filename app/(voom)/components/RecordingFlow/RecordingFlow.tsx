@@ -356,10 +356,10 @@ export function RecordingFlow({
 						<p className="shrink-0 text-sm text-foreground">
 							Grabación lista ({recordingResult.durationSeconds.toFixed(1)} s)
 						</p>
-						<div className="flex min-h-0 w-full max-w-4xl flex-1 flex-col justify-center overflow-hidden">
+						<div className="w-full max-w-4xl shrink-0">
 							<PreviewVideoPlayer
 								src={recordingResult.url}
-								className="h-full max-h-full min-h-0 w-full"
+								className="w-full max-w-full"
 							/>
 						</div>
 						<div className="flex shrink-0 flex-wrap items-center justify-center gap-3">
