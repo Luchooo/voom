@@ -6,7 +6,7 @@
  */
 export function DisplayMediaUnsupportedStep() {
 	return (
-		<div className="flex min-h-full flex-col items-center justify-center gap-6 p-8 text-center">
+		<div className="flex h-full min-h-0 flex-col items-center justify-center gap-6 overflow-hidden p-8 text-center">
 			<div
 				className="rounded-xl border border-amber-500/50 bg-amber-500/10 px-6 py-5 text-foreground"
 				role="alert"

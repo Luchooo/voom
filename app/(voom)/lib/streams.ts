@@ -38,6 +38,7 @@ export function preloadAvatarProfileImage(
     }
     const img = new Image();
     img.crossOrigin = "anonymous";
+    img.referrerPolicy = "no-referrer";
     const finish = () => {
       if (img.naturalWidth > 0) resolve(img);
       else resolve(null);

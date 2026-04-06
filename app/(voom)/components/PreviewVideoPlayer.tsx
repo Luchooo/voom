@@ -176,18 +176,20 @@ export const PreviewVideoPlayer = forwardRef<
 	return (
 		<div
 			ref={containerRef}
-			className={`flex flex-col overflow-hidden rounded-xl border border-border bg-neutral-900 shadow-2xl ${className}`}
+			className={`flex min-h-0 flex-col overflow-hidden rounded-xl border border-border bg-neutral-900 shadow-2xl ${className}`}
 		>
-			<video
-				ref={videoRef}
-				src={src}
-				playsInline
-				className="h-auto w-full bg-black"
-				onClick={togglePlay}
-				preload="metadata"
-			/>
+			<div className="relative min-h-40 w-full min-w-0 flex-1 overflow-hidden bg-black">
+				<video
+					ref={videoRef}
+					src={src}
+					playsInline
+					className="absolute inset-0 h-full w-full object-contain bg-black"
+					onClick={togglePlay}
+					preload="metadata"
+				/>
+			</div>
 			{/* Barra de controles (estilo Loom: fondo oscuro, barra roja de progreso) */}
-			<div className="flex flex-col gap-1 bg-neutral-900 px-3 py-2">
+			<div className="flex shrink-0 flex-col gap-1 bg-neutral-900 px-3 py-2">
 				{/* Barra de progreso */}
 				<div
 					role="slider"

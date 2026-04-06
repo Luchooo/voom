@@ -233,6 +233,7 @@ export function CameraOverlay({
                 className="object-cover"
                 sizes="(max-width: 768px) 120px, 200px"
                 priority
+                referrerPolicy="no-referrer"
               />
             </div>
           ) : (

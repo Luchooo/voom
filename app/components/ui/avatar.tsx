@@ -36,25 +36,35 @@ const AvatarImage = React.forwardRef<
 	React.ImgHTMLAttributes<HTMLImageElement>
 >(({ className = "", src, alt, onLoad, onError, ...props }, ref) => {
 	const { setShowFallback } = useAvatarContext();
+	const [broken, setBroken] = React.useState(false);
+
 	React.useEffect(() => {
+		setBroken(false);
 		if (!src) setShowFallback(true);
 	}, [src, setShowFallback]);
+
+	if (!src || broken) {
+		return null;
+	}
+
 	return (
 		// eslint-disable-next-line @next/next/no-img-element -- Avatar uses dynamic external URLs (e.g. Firebase) and needs onLoad/onError for fallback
 		<img
 			ref={ref}
+			{...props}
 			src={src}
 			alt={alt}
 			className={`aspect-square h-full w-full object-cover ${className}`}
+			referrerPolicy="no-referrer"
 			onLoad={(e) => {
 				setShowFallback(false);
 				onLoad?.(e);
 			}}
 			onError={(e) => {
+				setBroken(true);
 				setShowFallback(true);
 				onError?.(e);
 			}}
-			{...props}
 		/>
 	);
 });

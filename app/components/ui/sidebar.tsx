@@ -2,6 +2,10 @@
 
 import * as React from "react";
 import { cva } from "class-variance-authority";
+import {
+	loadSidebarOptions,
+	saveSidebarOptions,
+} from "@/app/lib/sidebarStorage";
 import { Sheet, SheetContent } from "./sheet";
 import { Button } from "./button";
 
@@ -55,10 +59,18 @@ const SidebarProvider = React.forwardRef<
 		const setOpen = React.useCallback(
 			(value: boolean) => {
 				if (onOpenChange) onOpenChange(value);
-				else setUncontrolledOpen(value);
+				else {
+					setUncontrolledOpen(value);
+					saveSidebarOptions({ open: value });
+				}
 			},
 			[onOpenChange],
 		);
+		React.useLayoutEffect(() => {
+			if (controlledOpen !== undefined) return;
+			const saved = loadSidebarOptions();
+			if (saved) setUncontrolledOpen(saved.open);
+		}, [controlledOpen]);
 		const [isMobile, setIsMobile] = React.useState(false);
 		React.useEffect(() => {
 			const mql = window.matchMedia("(max-width: 768px)");

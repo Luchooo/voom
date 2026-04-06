@@ -45,7 +45,8 @@ const COUNTDOWN_OPTIONS: { value: CountdownSeconds; label: string }[] = [
 	{ value: 10, label: '10 s' },
 ];
 
-/** Card fija arriba a la derecha: dispositivos con iconos, selector de mic/cámara, CTA y Settings */
+/** Card fija arriba a la derecha: dispositivos con iconos, selector de mic/cámara, CTA y Settings.
+ *  top por debajo del header de /record (h-14) + mismo margen que antes (top-6). */
 export function DeviceSetupCard({
 	options,
 	onOptionsChange,
@@ -189,7 +190,7 @@ export function DeviceSetupCard({
 	return (
 		<Card
 			ref={cardRef}
-			className="absolute right-6 top-6 z-10 w-72 border-border bg-card/95 shadow-xl backdrop-blur-md"
+			className="absolute right-6 top-20 z-10 w-72 border-border bg-card/95 shadow-xl backdrop-blur-md"
 		>
 			<CardHeader className="flex flex-row items-center justify-between gap-2 pb-2 pt-4">
 				{view === 'devices' ? (
