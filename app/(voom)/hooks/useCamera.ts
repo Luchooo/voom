@@ -56,37 +56,56 @@ export function useCamera(
 	uiSizePx?: number,
 ) {
 	const streamRef = useRef<MediaStream | null>(null);
+	const startPromiseRef = useRef<Promise<MediaStream | null> | null>(null);
+	const stopEpochRef = useRef(0);
 	const [stream, setStream] = useState<MediaStream | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [deviceNotFound, setDeviceNotFound] = useState(false);
 	const [isActive, setIsActive] = useState(false);
 
 	const start = useCallback(async (): Promise<MediaStream | null> => {
-		setError(null);
-		setDeviceNotFound(false);
-		try {
-			const videoConstraints = getOptimalCameraConstraints({
-				forcePerformanceMode: performanceMode,
-				uiSizePx,
-				deviceId,
-			});
-			const mediaStream = await navigator.mediaDevices.getUserMedia({
-				video: videoConstraints,
-				audio: false,
-			});
-			streamRef.current = mediaStream;
-			setStream(mediaStream);
-			setIsActive(true);
-			return mediaStream;
-		} catch (err) {
-			const message = cameraErrorToMessage(err);
-			setError(message);
-			setDeviceNotFound(isDeviceNotFoundError(err));
-			return null;
+		if (streamRef.current) return streamRef.current;
+		if (!startPromiseRef.current) {
+			setError(null);
+			setDeviceNotFound(false);
+
+			startPromiseRef.current = (async (): Promise<MediaStream | null> => {
+			try {
+				const epoch = stopEpochRef.current;
+				const videoConstraints = getOptimalCameraConstraints({
+					forcePerformanceMode: performanceMode,
+					uiSizePx,
+					deviceId,
+				});
+				const mediaStream = await navigator.mediaDevices.getUserMedia({
+					video: videoConstraints,
+					audio: false,
+				});
+				if (epoch !== stopEpochRef.current) {
+					mediaStream.getTracks().forEach((t) => t.stop());
+					return null;
+				}
+				streamRef.current = mediaStream;
+				setStream(mediaStream);
+				setIsActive(true);
+				return mediaStream;
+			} catch (err) {
+				const message = cameraErrorToMessage(err);
+				setError(message);
+				setDeviceNotFound(isDeviceNotFoundError(err));
+				return null;
+			} finally {
+				startPromiseRef.current = null;
+			}
+			})();
 		}
+
+		return startPromiseRef.current;
 	}, [performanceMode, uiSizePx, deviceId]);
 
 	const stop = useCallback(() => {
+		stopEpochRef.current += 1;
+		startPromiseRef.current = null;
 		if (streamRef.current) {
 			streamRef.current.getTracks().forEach((t) => t.stop());
 			streamRef.current = null;

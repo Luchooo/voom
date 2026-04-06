@@ -9,12 +9,15 @@ import {
 	AVATAR_CIRCLE_DIAMETER,
 	CIRCLE_DIAMETER_DEFAULT,
 } from '@voom/types/recorder';
+import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '../../../components/ui/button';
 
 interface CircularCameraPreviewProps {
 	stream: MediaStream | null;
 	overlayRef: React.MutableRefObject<CameraOverlayState | null>;
+	/** Foto de perfil (p. ej. Google) en modo avatar */
+	avatarPhotoUrl?: string | null;
 	/** Valores iniciales (p. ej. desde localStorage) */
 	initialPosition?: { x: number; y: number };
 	initialSize?: CameraOverlaySize;
@@ -56,13 +59,11 @@ function syncOverlayRef(
 	};
 }
 
-/** En preview, avatar usa el mismo diámetro que en la grabación. */
-const PREVIEW_CIRCLE_AVATAR = AVATAR_CIRCLE_DIAMETER;
-
 /** Cámara circular: 4 estados (tamaño configurable, pantalla completa, avatar). Arrastrable, hover revela opciones. */
 export function CircularCameraPreview({
 	stream,
 	overlayRef,
+	avatarPhotoUrl = null,
 	initialPosition,
 	initialSize,
 	circleDiameterPx = CIRCLE_DIAMETER_DEFAULT,
@@ -80,7 +81,7 @@ export function CircularCameraPreview({
 	const dragStart = useRef({ x: 0, y: 0 });
 	const videoRef = useRef<HTMLVideoElement>(null);
 
-	const circlePx = size === 'avatar' ? PREVIEW_CIRCLE_AVATAR : circleDiameterPx;
+	const circlePx = circleDiameterPx;
 
 	useEffect(() => {
 		if (!stream || !videoRef.current) return;
@@ -94,11 +95,7 @@ export function CircularCameraPreview({
 	}, [stream, size]);
 
 	const effectiveDiameter =
-		size === 'fullscreen'
-			? CIRCLE_DIAMETER_DEFAULT
-			: size === 'avatar'
-				? PREVIEW_CIRCLE_AVATAR
-				: circleDiameterPx;
+		size === 'fullscreen' ? CIRCLE_DIAMETER_DEFAULT : circleDiameterPx;
 	useEffect(() => {
 		syncOverlayRef(overlayRef, size, position, effectiveDiameter);
 	}, [size, position, overlayRef, effectiveDiameter]);
@@ -130,6 +127,7 @@ export function CircularCameraPreview({
 			setSize(s);
 			if (s === 'small') onCircleDiameterChange?.(222);
 			if (s === 'large') onCircleDiameterChange?.(400);
+			if (s === 'avatar') onCircleDiameterChange?.(AVATAR_CIRCLE_DIAMETER);
 		},
 		[onCircleDiameterChange],
 	);
@@ -223,7 +221,7 @@ className="h-10 w-10 [&_svg]:h-5 [&_svg]:w-5"
 	if (size === 'fullscreen') {
 		return (
 			<div
-				className="fixed inset-2 z-[5] overflow-hidden rounded-3xl border-4 border-border shadow-2xl ring-2 ring-foreground/20"
+				className="fixed inset-2 z-5 overflow-hidden rounded-3xl border-2 border-border shadow-2xl ring-1 ring-foreground/20"
 				onMouseEnter={() => setHover(true)}
 				onMouseLeave={() => setHover(false)}
 			>
@@ -261,7 +259,7 @@ className="h-10 w-10 [&_svg]:h-5 [&_svg]:w-5"
 		>
 			<div className="relative">
 				<div
-					className={`relative overflow-hidden rounded-full border-4 border-border shadow-2xl ring-2 ring-foreground/20 transition-[width,height] duration-200 hover:shadow-orange-500/20 ${
+					className={`relative overflow-hidden rounded-full border-2 border-border shadow-2xl ring-1 ring-foreground/20 transition-[width,height] duration-200 hover:shadow-orange-500/20 ${
 						dragging ? 'cursor-grabbing' : 'cursor-grab'
 					}`}
 					style={{ width: circlePx, height: circlePx }}
@@ -275,6 +273,17 @@ className="h-10 w-10 [&_svg]:h-5 [&_svg]:w-5"
 							muted
 							playsInline
 						/>
+					) : size === 'avatar' && avatarPhotoUrl ? (
+						<div className="relative h-full w-full overflow-hidden rounded-full">
+							<Image
+								src={avatarPhotoUrl}
+								alt=""
+								fill
+								className="object-cover"
+								sizes={`${circlePx}px`}
+								priority
+							/>
+						</div>
 					) : (
 						<div className="flex h-full w-full items-center justify-center bg-muted">
 							<AvatarIcon className="h-1/3 w-1/3 text-muted-foreground" />

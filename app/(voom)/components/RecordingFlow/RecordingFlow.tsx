@@ -17,7 +17,6 @@ import {
 } from '@voom/lib/recorderStorage';
 import type { CameraOverlayState } from '@voom/types/recorder';
 import {
-	AVATAR_CIRCLE_DIAMETER,
 	type CameraOverlaySize,
 	CIRCLE_DIAMETER_DEFAULT,
 	CIRCLE_DIAMETER_MAX,
@@ -25,9 +24,11 @@ import {
 	type RecorderOptions,
 	type RecordingFlowState,
 } from '@voom/types/recorder';
+import { useAuth } from '@/hooks/useAuth';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '../../../components/ui/button';
 import { Spinner } from '../../../components/ui/spinner';
+import { DiscardRecordingDialog } from './DiscardRecordingDialog';
 import {
 	CircularCameraPreview,
 	CountdownStep,
@@ -88,7 +89,7 @@ function getInitialCamera(): StoredCameraOverlay {
 
 /**
  * Flujo de pre-grabación: welcome → device_setup → (screen selection) → countdown → recording → ready.
- * Opciones y posición de cámara se persisten en localStorage.
+ * Tras una grabación, «Grabar de nuevo» vuelve a device_setup (no al welcome). Opciones y overlay se persisten.
  */
 export function RecordingFlow({
 	showMp4Option = false,
@@ -145,6 +146,12 @@ export function RecordingFlow({
 	const isDeviceSetup = flowState === 'device_setup';
 	const availability = useDeviceAvailability(isDeviceSetup);
 
+	const overlayIsAvatar = cameraState.size === 'avatar';
+	const cameraPreviewVideoEnabled =
+		options.camera && flowState === 'device_setup' && !overlayIsAvatar;
+	const { user } = useAuth();
+	const avatarPhotoUrl = user?.photoURL ?? null;
+
 	const {
 		error,
 		recordingResult,
@@ -161,7 +168,14 @@ export function RecordingFlow({
 		camera,
 		mic,
 		screen,
-	} = useRecorder(options, overlayRef);
+	} = useRecorder(
+		options,
+		overlayRef,
+		cameraPreviewVideoEnabled,
+		avatarPhotoUrl,
+		overlayIsAvatar,
+		false,
+	);
 
 	// Sincronizar switches con dispositivos detectados: sin dispositivo → false; con dispositivo → true.
 	useEffect(() => {
@@ -269,9 +283,7 @@ export function RecordingFlow({
 			circleDiameterPx:
 				cameraState.size === 'fullscreen'
 					? undefined
-					: cameraState.size === 'avatar'
-						? AVATAR_CIRCLE_DIAMETER
-						: (options.circleDiameterPx ?? CIRCLE_DIAMETER_DEFAULT),
+					: (options.circleDiameterPx ?? CIRCLE_DIAMETER_DEFAULT),
 			isFullScreen: cameraState.size === 'fullscreen',
 			isAvatar: cameraState.size === 'avatar',
 		};
@@ -284,9 +296,9 @@ export function RecordingFlow({
 		setFlowState('ready');
 	}, [stopRecording]);
 
-	const handleReset = useCallback(() => {
+	const handleDiscardAndRecordAgain = useCallback(() => {
 		reset();
-		setFlowState('welcome');
+		setFlowState('device_setup');
 	}, [reset]);
 
 	const handleApplyTrim = useCallback(
@@ -425,15 +437,19 @@ export function RecordingFlow({
 								onSelectVersion={setCurrentVersion}
 								onEditVideo={() => setFlowState('trim')}
 							/>
-							<Button
-								type="button"
-								variant="secondary"
-								size="lg"
-								onClick={handleReset}
-								className="border-2 border-border"
-							>
-								Grabar de nuevo
-							</Button>
+							<DiscardRecordingDialog
+								onConfirm={handleDiscardAndRecordAgain}
+								trigger={
+									<Button
+										type="button"
+										variant="secondary"
+										size="lg"
+										className="border-2 border-border"
+									>
+										Grabar de nuevo
+									</Button>
+								}
+							/>
 						</div>
 					</div>
 				)}
@@ -466,11 +482,13 @@ export function RecordingFlow({
 						microphoneAvailable={availability.hasMicrophone}
 						microphoneNotFound={mic?.deviceNotFound ?? false}
 						devicesLoading={availability.isLoading}
+						cameraOverlaySize={cameraState.size}
 					/>
 					{options.camera && !camera?.deviceNotFound && (
 						<CircularCameraPreview
 							key={storageKey}
 							stream={camera.stream}
+							avatarPhotoUrl={avatarPhotoUrl}
 							overlayRef={overlayRef}
 							initialPosition={cameraState.position}
 							initialSize={cameraState.size}
@@ -498,6 +516,7 @@ export function RecordingFlow({
 						microphoneAvailable={availability.hasMicrophone}
 						microphoneNotFound={mic?.deviceNotFound ?? false}
 						devicesLoading={availability.isLoading}
+						cameraOverlaySize={cameraState.size}
 					/>
 					<div className="flex min-h-full items-center justify-center p-8">
 						<p className="text-foreground">

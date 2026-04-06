@@ -25,7 +25,7 @@ export const CIRCLE_DIAMETER_PX = { small: 222, large: 400 } as const;
 export interface CameraOverlayState {
   xRatio: number;
   yRatio: number;
-  /** Para círculos: diámetro en píxeles en el video (222 o 400). Ignorado si isFullScreen. */
+  /** Círculo de cámara o avatar: diámetro en píxeles en el video (100–600 salvo fullscreen). Ignorado si isFullScreen. */
   circleDiameterPx?: number;
   /** true = cámara a pantalla completa en el video */
   isFullScreen: boolean;
@@ -50,7 +50,7 @@ export interface RecorderOptions {
   videoDeviceId?: string;
   /** Voltear orientación de la cámara (espejo) */
   flipCamera?: boolean;
-  /** Diámetro del círculo de cámara en px (100–600). Usado cuando el modo es small o large. */
+  /** Diámetro del círculo en px (100–600): cámara circular y modo avatar (mismo rango). */
   circleDiameterPx?: number;
   /** Segundos de la cuenta regresiva antes de grabar (3, 6 o 10). Por defecto 3. */
   countdownSeconds?: CountdownSeconds;

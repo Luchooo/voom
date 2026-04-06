@@ -1,6 +1,7 @@
 'use client';
 
 import type {
+	CameraOverlaySize,
 	CountdownSeconds,
 	RecorderOptions,
 	RecordingFrameRate,
@@ -33,6 +34,8 @@ interface DeviceSetupCardProps {
 	microphoneNotFound?: boolean;
 	/** true mientras se está ejecutando enumerateDevices (estado inicial). */
 	devicesLoading?: boolean;
+	/** Tamaño del overlay circular (para copiar del slider de diámetro). */
+	cameraOverlaySize?: CameraOverlaySize;
 }
 
 const FPS_OPTIONS: RecordingFrameRate[] = [30, 60, 120];
@@ -54,6 +57,7 @@ export function DeviceSetupCard({
 	microphoneAvailable = true,
 	microphoneNotFound = false,
 	devicesLoading = false,
+	cameraOverlaySize = 'small',
 }: DeviceSetupCardProps) {
 	const showCameraBlock = !cameraAvailable || cameraNotFound;
 	const showMicrophoneBlock = !microphoneAvailable || microphoneNotFound;
@@ -493,14 +497,18 @@ export function DeviceSetupCard({
 						<div>
 							<div className="mb-1 flex items-center justify-between">
 								<p className="text-sm font-medium text-card-foreground">
-									Tamaño del círculo de cámara
+									{cameraOverlaySize === 'avatar'
+										? 'Tu avatar a cámara'
+										: 'Tamaño del círculo de cámara'}
 								</p>
 								<span className="text-xs text-muted-foreground">
 									{options.circleDiameterPx ?? CIRCLE_DIAMETER_DEFAULT} px
 								</span>
 							</div>
 							<p className="mb-2 text-xs text-muted-foreground">
-								Diámetro del círculo (100–600 px)
+								{cameraOverlaySize === 'avatar'
+									? 'Así de grande te verán en el video (100–600 px). ¡Pruébalo!'
+									: 'Diámetro del círculo (100–600 px)'}
 							</p>
 							<input
 								type="range"

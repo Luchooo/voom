@@ -1,11 +1,18 @@
 "use client";
 
 import { Button } from "../../components/ui/button";
+import { DiscardRecordingDialog } from "./RecordingFlow/DiscardRecordingDialog";
 import type {
+  CameraOverlaySize,
   RecorderOptions,
   RecorderStatus,
   RecordingFrameRate,
   RecordingResolution,
+} from "@voom/types/recorder";
+import {
+  CIRCLE_DIAMETER_DEFAULT,
+  CIRCLE_DIAMETER_MAX,
+  CIRCLE_DIAMETER_MIN,
 } from "@voom/types/recorder";
 
 interface RecorderControlsProps {
@@ -17,6 +24,8 @@ interface RecorderControlsProps {
   onDownload: () => void;
   onReset: () => void;
   canDownload: boolean;
+  /** Tamaño del overlay en la vista previa (texto del slider de diámetro). */
+  cameraOverlaySize?: CameraOverlaySize;
 }
 
 const statusLabels: Record<RecorderStatus, string> = {
@@ -48,6 +57,7 @@ export function RecorderControls({
   onDownload,
   onReset,
   canDownload,
+  cameraOverlaySize = "small",
 }: RecorderControlsProps) {
   const isBusy = status === "requesting" || status === "stopping";
   const isRecording = status === "recording";
@@ -146,6 +156,44 @@ export function RecorderControls({
         </label>
       </div>
 
+      {options.camera && (
+        <div>
+          <div className="mb-1 flex items-center justify-between">
+            <span className="text-sm font-medium">
+              {cameraOverlaySize === "avatar"
+                ? "Tu avatar a cámara"
+                : "Tamaño del círculo de cámara"}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {options.circleDiameterPx ?? CIRCLE_DIAMETER_DEFAULT} px
+            </span>
+          </div>
+          <p className="mb-2 text-xs text-muted-foreground">
+            {cameraOverlaySize === "avatar"
+              ? "Así de grande te verán en el video (100–600 px). ¡Pruébalo!"
+              : "Diámetro del círculo (100–600 px)"}
+          </p>
+          <input
+            type="range"
+            min={CIRCLE_DIAMETER_MIN}
+            max={CIRCLE_DIAMETER_MAX}
+            step={10}
+            value={options.circleDiameterPx ?? CIRCLE_DIAMETER_DEFAULT}
+            onChange={(e) =>
+              onOptionsChange({
+                ...options,
+                circleDiameterPx: Math.min(
+                  CIRCLE_DIAMETER_MAX,
+                  Math.max(CIRCLE_DIAMETER_MIN, e.target.valueAsNumber)
+                ),
+              })
+            }
+            disabled={isRecording}
+            className="w-full max-w-md accent-orange-500"
+          />
+        </div>
+      )}
+
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <span
           className={`h-2 w-2 rounded-full ${
@@ -173,9 +221,14 @@ export function RecorderControls({
             <Button variant="secondary" onClick={onDownload}>
               Descargar video
             </Button>
-            <Button variant="outline" onClick={onReset}>
-              Nueva grabación
-            </Button>
+            <DiscardRecordingDialog
+              onConfirm={onReset}
+              trigger={
+                <Button type="button" variant="outline">
+                  Nueva grabación
+                </Button>
+              }
+            />
           </>
         )}
       </div>
