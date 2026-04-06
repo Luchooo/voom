@@ -1,6 +1,13 @@
 "use client";
 
+import { useAuth } from "@/hooks/useAuth";
 import { useCallback, useRef, useState } from "react";
+import type { CameraOverlaySize } from "@voom/types/recorder";
+import {
+  CIRCLE_DIAMETER_DEFAULT,
+  CIRCLE_DIAMETER_MAX,
+  CIRCLE_DIAMETER_MIN,
+} from "@voom/types/recorder";
 import {
   Card,
   CardContent,
@@ -32,10 +39,18 @@ export function Recorder() {
     resolution: "720p",
     frameRate: 60,
     performanceMode: true,
+    circleDiameterPx: CIRCLE_DIAMETER_DEFAULT,
   });
 
   const overlayRef = useRef<CameraOverlayState | null>(DEFAULT_OVERLAY);
   const previewContainerRef = useRef<HTMLDivElement>(null);
+  const [previewOverlaySize, setPreviewOverlaySize] =
+    useState<CameraOverlaySize>("small");
+
+  const overlayIsAvatar = previewOverlaySize === "avatar";
+  const cameraPreviewVideoEnabled = options.camera && !overlayIsAvatar;
+  const { user } = useAuth();
+  const avatarPhotoUrl = user?.photoURL ?? null;
 
   const {
     status,
@@ -46,10 +61,27 @@ export function Recorder() {
     downloadRecording,
     reset,
     camera,
-  } = useRecorder(options, overlayRef);
+  } = useRecorder(
+    options,
+    overlayRef,
+    cameraPreviewVideoEnabled,
+    avatarPhotoUrl,
+    overlayIsAvatar,
+    true,
+  );
 
   const handleOptionsChange = useCallback((newOptions: RecorderOptions) => {
     setOptions(newOptions);
+  }, []);
+
+  const handleCircleDiameterChange = useCallback((diameterPx: number) => {
+    setOptions((prev) => ({
+      ...prev,
+      circleDiameterPx: Math.min(
+        CIRCLE_DIAMETER_MAX,
+        Math.max(CIRCLE_DIAMETER_MIN, diameterPx)
+      ),
+    }));
   }, []);
 
   return (
@@ -79,15 +111,24 @@ export function Recorder() {
             ref={previewContainerRef}
             className="relative aspect-video w-full max-w-full overflow-hidden rounded-lg border bg-muted"
           >
-            {options.camera && camera.stream && (
+            {options.camera &&
+              (camera.stream || previewOverlaySize === "avatar") && (
               <CameraOverlay
                 stream={camera.stream}
                 overlayRef={overlayRef}
                 containerRef={previewContainerRef}
                 className="rounded-lg"
+                avatarPhotoUrl={avatarPhotoUrl}
+                onOverlaySizeChange={setPreviewOverlaySize}
+                circleDiameterPx={
+                  options.circleDiameterPx ?? CIRCLE_DIAMETER_DEFAULT
+                }
+                onCircleDiameterChange={handleCircleDiameterChange}
               />
             )}
-            {options.camera && !camera.stream && (
+            {options.camera &&
+              !camera.stream &&
+              previewOverlaySize !== "avatar" && (
               <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
                 Cargando cámara…
               </div>
@@ -109,6 +150,7 @@ export function Recorder() {
           onDownload={downloadRecording}
           onReset={reset}
           canDownload={!!recordingResult}
+          cameraOverlaySize={previewOverlaySize}
         />
 
         {recordingResult && (

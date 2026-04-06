@@ -168,7 +168,7 @@ const Sidebar = React.forwardRef<
 				data-sidebar="sidebar"
 				data-side={side}
 				data-slot="sidebar"
-				className={`fixed inset-y-0 z-10 hidden w-[var(--sidebar-width)] md:flex ${side === "left" ? "left-0" : "right-0"} ${sidebarVariants({ side, variant, collapsible })} ${className}`}
+				className={`fixed inset-y-0 z-10 hidden w-(--sidebar-width) md:flex ${side === "left" ? "left-0" : "right-0"} ${sidebarVariants({ side, variant, collapsible })} ${className}`}
 				{...props}
 			>
 				{children}
@@ -179,7 +179,7 @@ const Sidebar = React.forwardRef<
 				<Sheet open={openMobile} onOpenChange={setOpenMobile}>
 					<SheetContent
 						side={side}
-						className="w-[var(--sidebar-width-mobile)] p-0"
+						className="w-(--sidebar-width-mobile) p-0"
 						aria-describedby={undefined}
 					>
 						<div
@@ -265,7 +265,7 @@ const SidebarInset = React.forwardRef<
 >(({ className = "", ...props }, ref) => (
 	<main
 		ref={ref}
-		className={`flex-1 overflow-auto pt-0 transition-[padding] duration-200 ease-linear md:pl-[var(--sidebar-width)] group-data-[state=collapsed]/sidebar:md:pl-14 ${className}`}
+		className={`flex-1 overflow-auto pt-0 transition-[padding] duration-200 ease-linear md:pl-(--sidebar-width) group-data-[state=collapsed]/sidebar:md:pl-14 ${className}`}
 		{...props}
 	/>
 ));

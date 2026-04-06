@@ -6,6 +6,7 @@ import {
   combineScreenAndCameraStreams,
   mergeAudioIntoStream,
   mixAudioStreams,
+  preloadAvatarProfileImage,
   stopAllTracks,
 } from "@voom/lib/streams";
 import { getRecordingFilename, downloadBlob } from "@voom/lib/download";
@@ -38,10 +39,18 @@ function getVideoBitrate(
  * Hook principal que orquesta pantalla, micrófono, cámara y MediaRecorder.
  * Mantiene el estado de la grabación y expone start/stop/download.
  * @param overlayRef Ref al estado del overlay de cámara (posición/tamaño); opcional.
+ * @param cameraPreviewVideoEnabled Si true, mantiene la cámara para vista previa (p. ej. solo en configuración). Si false, la cámara solo se abre al grabar (salvo avatar).
+ * @param avatarPhotoUrl URL de foto de perfil (p. ej. Google) para composición en modo avatar.
+ * @param overlayIsAvatar Si true, no se solicita vídeo de cámara (ni preview ni grabación).
+ * @param stopCameraPreviewWhenReady Si true, apaga la cámara en estado `ready` aunque el padre pida preview (p. ej. página Recorder sin pantalla de bienvenida).
  */
 export function useRecorder(
   options: RecorderOptions,
-  overlayRef?: MutableRefObject<CameraOverlayState | null>
+  overlayRef?: MutableRefObject<CameraOverlayState | null>,
+  cameraPreviewVideoEnabled = true,
+  avatarPhotoUrl: string | null | undefined = null,
+  overlayIsAvatar = false,
+  stopCameraPreviewWhenReady = false
 ) {
   const [status, setStatus] = useState<RecorderStatus>("idle");
   /** Lista de versiones: [original, edición 1, edición 2, ...]. El usuario puede volver a cualquiera. */
@@ -54,8 +63,18 @@ export function useRecorder(
 
   const screen = useScreenCapture();
   const mic = useMicrophone();
+  const previewCameraOn =
+    cameraPreviewVideoEnabled &&
+    !(stopCameraPreviewWhenReady && status === "ready");
+  const cameraEnabled =
+    options.camera &&
+    !overlayIsAvatar &&
+    (previewCameraOn ||
+      status === "requesting" ||
+      status === "recording" ||
+      status === "stopping");
   const camera = useCamera(
-    options.camera,
+    cameraEnabled,
     options.performanceMode ?? false,
     options.videoDeviceId,
     options.circleDiameterPx ?? CIRCLE_DIAMETER_DEFAULT
@@ -72,8 +91,8 @@ export function useRecorder(
   const stopAllStreams = useCallback(() => {
     screen.stopCapture();
     mic.stop();
-    if (!options.camera) camera.stop();
-  }, [screen, mic, camera, options.camera]);
+    camera.stop();
+  }, [screen, mic, camera]);
 
   const startRecording = useCallback(
     async (opts?: {
@@ -116,6 +135,24 @@ export function useRecorder(
         });
       }
 
+    const overlaySnapshot = opts?.overlayState;
+    const isAvatar =
+      (overlaySnapshot?.isAvatar ?? overlayRef?.current?.isAvatar) === true;
+
+    let cameraStream: MediaStream | null = null;
+    if (options.camera && !isAvatar) {
+      cameraStream = (await camera.start()) ?? null;
+      if (!cameraStream) {
+        setError(
+          camera.error ?? "No se pudo acceder a la cámara para la grabación."
+        );
+        screenStream.getTracks().forEach((t) => t.stop());
+        screenStreamRef.current = null;
+        setStatus("idle");
+        return;
+      }
+    }
+
     let micStream: MediaStream | null = null;
     if (options.microphone) {
       micStream = await mic.start(options.audioDeviceId);
@@ -133,11 +170,10 @@ export function useRecorder(
       mixAudioStreams(streamsWithAudio);
     mixedAudioCloseRef.current = mixedAudioClose;
 
-    const overlaySnapshot = opts?.overlayState;
-    const isAvatar =
-      (overlaySnapshot?.isAvatar ?? overlayRef?.current?.isAvatar) === true;
-    const cameraStream =
-      options.camera && !isAvatar ? camera.stream : null;
+    let avatarProfileImage: HTMLImageElement | null = null;
+    if (isAvatar && avatarPhotoUrl) {
+      avatarProfileImage = await preloadAvatarProfileImage(avatarPhotoUrl);
+    }
     const effectiveFps =
       options.performanceMode ? Math.min(options.frameRate, 30) : options.frameRate;
     const videoStream = combineScreenAndCameraStreams(screenStream, cameraStream, {
@@ -145,6 +181,7 @@ export function useRecorder(
       overlayRef: overlayRef ?? undefined,
       overlayState: overlaySnapshot ?? undefined,
       flipCamera: options.flipCamera !== false,
+      avatarProfileImage,
     });
     const finalStream = mergeAudioIntoStream(
       videoStream,
@@ -201,7 +238,7 @@ export function useRecorder(
     recorder.start(performanceMode ? 2000 : 1000);
     setStatus("recording");
   },
-  [options, screen, mic, camera, overlayRef]
+  [options, screen, mic, camera, overlayRef, avatarPhotoUrl]
   );
 
   const stopRecording = useCallback(() => {

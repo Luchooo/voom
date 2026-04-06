@@ -3,11 +3,12 @@
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { FaGoogle } from "react-icons/fa";
 import { Button } from "../ui/button";
+import { Skeleton } from "../ui/skeleton";
 
 /**
- * Header de la landing: logo + CTA "Comenzar a grabar".
- * Con sesión → enlace a /record. Sin sesión → clic abre modal de Google y redirige a /record.
+ * Header de la landing: logo + CTA según sesión (Google si no hay usuario).
  */
 export function LandingHeader() {
 	const { user, loading } = useAuth();
@@ -16,7 +17,11 @@ export function LandingHeader() {
 			<div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
 				<span className="text-lg font-semibold tracking-tight">Voom</span>
 				{loading ? (
-					<span className="text-sm text-muted-foreground">Cargando…</span>
+					<Skeleton
+						className="h-9 w-44 rounded-md"
+						aria-busy="true"
+						aria-label="Cargando opciones de acceso"
+					/>
 				) : user ? (
 					<Link href="/record">
 						<Button variant="orange" size="sm">
@@ -44,8 +49,15 @@ function LandingAuthCTAHeader() {
 	};
 
 	return (
-		<Button variant="orange" size="sm" onClick={handleClick}>
-			Comenzar a grabar
+		<Button
+			variant="orange"
+			size="sm"
+			onClick={handleClick}
+			className="gap-2"
+			aria-label="Iniciar sesión con Google para comenzar a grabar"
+		>
+			<FaGoogle className="h-5 w-5 shrink-0 text-white" aria-hidden />
+			Continuar con Google
 		</Button>
 	);
 }

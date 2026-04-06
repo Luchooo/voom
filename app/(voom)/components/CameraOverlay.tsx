@@ -1,10 +1,15 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import type { CameraOverlayState, CameraOverlaySize } from "@voom/types/recorder";
-import { CIRCLE_DIAMETER_PX } from "@voom/types/recorder";
+import {
+  AVATAR_CIRCLE_DIAMETER,
+  CIRCLE_DIAMETER_DEFAULT,
+  CIRCLE_DIAMETER_PX,
+} from "@voom/types/recorder";
 import { getOverlayLabel } from "@voom/lib/overlaySize";
 
 interface CameraOverlayProps {
@@ -12,6 +17,14 @@ interface CameraOverlayProps {
   overlayRef: React.MutableRefObject<CameraOverlayState | null>;
   containerRef: React.RefObject<HTMLDivElement | null>;
   className?: string;
+  /** Foto de perfil (p. ej. Google) en modo avatar */
+  avatarPhotoUrl?: string | null;
+  /** Notifica cambios de tamaño (p. ej. avatar) para detener/reanudar el track de cámara en el padre */
+  onOverlaySizeChange?: (size: CameraOverlaySize) => void;
+  /** Diámetro lógico del círculo (igual que en la grabación; 100–600). */
+  circleDiameterPx?: number;
+  /** Al pulsar Pequeño / Grande / Avatar: sincronizar diámetro con el padre */
+  onCircleDiameterChange?: (diameterPx: number) => void;
 }
 
 const DEFAULT_LEFT = 78;
@@ -30,16 +43,11 @@ function syncOverlayRef(
   ref: React.MutableRefObject<CameraOverlayState | null>,
   leftPercent: number,
   topPercent: number,
-  size: CameraOverlaySize
+  size: CameraOverlaySize,
+  circleDiameterPx: number
 ) {
   const isFullScreen = size === "fullscreen";
   const isAvatar = size === "avatar";
-  const circleDiameterPx =
-    size === "small"
-      ? CIRCLE_DIAMETER_PX.small
-      : size === "large"
-        ? CIRCLE_DIAMETER_PX.large
-        : 222;
   ref.current = {
     xRatio: leftPercent / 100,
     yRatio: topPercent / 100,
@@ -49,17 +57,59 @@ function syncOverlayRef(
   };
 }
 
+function layoutPercents(
+  size: CameraOverlaySize,
+  previewW: number,
+  previewH: number,
+  circleDiameterPx: number
+): { widthPercent: number; heightPercent: number; aspectRatio: string } {
+  if (size === "fullscreen") {
+    return { widthPercent: 100, heightPercent: 100, aspectRatio: "16/9" };
+  }
+  const winW = typeof window !== "undefined" ? window.innerWidth : 1920;
+  if (size === "avatar" && previewW > 0 && winW > 0) {
+    const dPx = Math.round(circleDiameterPx * (previewW / winW));
+    const d = Math.max(32, Math.min(previewW, dPx));
+    const wPct = Math.min(95, (d / previewW) * 100);
+    const hPct =
+      previewH > 0 ? Math.min(95, (d / previewH) * 100) : wPct;
+    return { widthPercent: wPct, heightPercent: hPct, aspectRatio: "1" };
+  }
+  const widthPercent = PREVIEW_WIDTH_PERCENT[size];
+  return {
+    widthPercent,
+    heightPercent: widthPercent * (9 / 16),
+    aspectRatio: "16/9",
+  };
+}
+
 export function CameraOverlay({
   stream,
   overlayRef,
   containerRef,
   className = "",
+  avatarPhotoUrl = null,
+  onOverlaySizeChange,
+  circleDiameterPx = CIRCLE_DIAMETER_DEFAULT,
+  onCircleDiameterChange,
 }: CameraOverlayProps) {
   const [position, setPosition] = useState({ left: DEFAULT_LEFT, top: DEFAULT_TOP });
   const [size, setSize] = useState<CameraOverlaySize>(DEFAULT_SIZE);
   const [isDragging, setIsDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0, left: 0, top: 0 });
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [previewBox, setPreviewBox] = useState({ w: 0, h: 0 });
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      setPreviewBox({ w: el.offsetWidth, h: el.offsetHeight });
+    });
+    ro.observe(el);
+    setPreviewBox({ w: el.offsetWidth, h: el.offsetHeight });
+    return () => ro.disconnect();
+  }, [containerRef]);
 
   useEffect(() => {
     if (!stream || !videoRef.current) return;
@@ -73,8 +123,12 @@ export function CameraOverlay({
   }, [stream, size]);
 
   useEffect(() => {
-    syncOverlayRef(overlayRef, position.left, position.top, size);
-  }, [position, size, overlayRef]);
+    syncOverlayRef(overlayRef, position.left, position.top, size, circleDiameterPx);
+  }, [position, size, overlayRef, circleDiameterPx]);
+
+  useEffect(() => {
+    onOverlaySizeChange?.(size);
+  }, [size, onOverlaySizeChange]);
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
@@ -99,8 +153,12 @@ export function CameraOverlay({
       const ch = container?.offsetHeight ?? 1;
       const dxPercent = ((e.clientX - dragStart.current.x) / cw) * 100;
       const dyPercent = ((e.clientY - dragStart.current.y) / ch) * 100;
-      const widthPercent = PREVIEW_WIDTH_PERCENT[size];
-      const heightPercent = size === "fullscreen" ? 100 : widthPercent * (9 / 16);
+      const { widthPercent, heightPercent } = layoutPercents(
+        size,
+        cw,
+        ch,
+        circleDiameterPx
+      );
       setPosition({
         left: Math.max(0, Math.min(100 - widthPercent, dragStart.current.left + dxPercent)),
         top: Math.max(0, Math.min(100 - heightPercent, dragStart.current.top + dyPercent)),
@@ -113,18 +171,29 @@ export function CameraOverlay({
       document.removeEventListener("mousemove", onMove);
       document.removeEventListener("mouseup", onUp);
     };
-  }, [isDragging, containerRef, size]);
+  }, [isDragging, containerRef, size, circleDiameterPx]);
 
-  const setSizeAndPosition = useCallback((newSize: CameraOverlaySize) => {
-    setSize(newSize);
-    if (newSize === "fullscreen") {
-      setPosition({ left: 0, top: 0 });
-    }
-  }, []);
+  const setSizeAndPosition = useCallback(
+    (newSize: CameraOverlaySize) => {
+      setSize(newSize);
+      if (newSize === "fullscreen") {
+        setPosition({ left: 0, top: 0 });
+      }
+      if (newSize === "small") onCircleDiameterChange?.(CIRCLE_DIAMETER_PX.small);
+      else if (newSize === "large") onCircleDiameterChange?.(CIRCLE_DIAMETER_PX.large);
+      else if (newSize === "avatar") onCircleDiameterChange?.(AVATAR_CIRCLE_DIAMETER);
+    },
+    [onCircleDiameterChange]
+  );
 
   if (!stream && size !== "avatar") return null;
 
-  const widthPercent = PREVIEW_WIDTH_PERCENT[size];
+  const { widthPercent, aspectRatio } = layoutPercents(
+    size,
+    previewBox.w,
+    previewBox.h,
+    circleDiameterPx
+  );
   const isFullScreen = size === "fullscreen";
   const showVideo = stream && size !== "avatar";
 
@@ -138,7 +207,7 @@ export function CameraOverlay({
               left: `${position.left}%`,
               top: `${position.top}%`,
               width: `${widthPercent}%`,
-              aspectRatio: "16/9",
+              aspectRatio,
             }
       }
     >
@@ -155,6 +224,17 @@ export function CameraOverlay({
               muted
               playsInline
             />
+          ) : size === "avatar" && avatarPhotoUrl ? (
+            <div className="relative mx-auto aspect-square h-full w-full min-h-0 min-w-0 overflow-hidden rounded-full">
+              <Image
+                src={avatarPhotoUrl}
+                alt=""
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 120px, 200px"
+                priority
+              />
+            </div>
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-neutral-800">
               <CameraIcon className="h-1/3 w-1/3 text-white/80" />

@@ -1,14 +1,18 @@
 import Image from "next/image";
+import { Suspense } from "react";
 import { LandingAuthCTA } from "./components/landing/LandingAuthCTA";
 import { LandingHeader } from "./components/landing/LandingHeader";
+import { SessionRequiredBanner } from "./components/landing/SessionRequiredBanner";
 
 /**
- * Landing tipo Loom: hero, valor, CTA "Continue with Google" → /record.
- * Raíz /; el flujo de grabación vive en /record (protegido por auth).
+ * Landing: hero y CTAs vía LandingAuthCTA / header (sin sesión → Google; con sesión → grabar).
  */
 export default function Home() {
 	return (
 		<div className="min-h-screen flex flex-col bg-background text-foreground">
+			<Suspense fallback={null}>
+				<SessionRequiredBanner />
+			</Suspense>
 			<LandingHeader />
 
 			{/* Hero */}

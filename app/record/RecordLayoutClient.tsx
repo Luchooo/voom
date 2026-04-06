@@ -18,7 +18,7 @@ export function RecordLayoutClient({
 
 	useEffect(() => {
 		if (loading) return;
-		if (!user) router.replace("/");
+		if (!user) router.replace("/?sessionRequired=1");
 	}, [loading, user, router]);
 
 	if (loading) {

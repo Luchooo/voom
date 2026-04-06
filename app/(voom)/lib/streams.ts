@@ -17,6 +17,35 @@ export interface CombineScreenOptions {
   overlayState?: CameraOverlayState | null;
   /** Si true, dibuja la cámara volteada (espejo). */
   flipCamera?: boolean;
+  /**
+   * Imagen de perfil precargada (p. ej. foto de Google) para modo avatar en el canvas.
+   * Si falta o falla la carga, se usa el placeholder.
+   */
+  avatarProfileImage?: HTMLImageElement | null;
+}
+
+/**
+ * Precarga una URL de foto de perfil para dibujarla en canvas (CORS anonymous).
+ * Si el servidor no permite CORS, devuelve null y se usará el placeholder en grabación.
+ */
+export function preloadAvatarProfileImage(
+  url: string
+): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    if (!url) {
+      resolve(null);
+      return;
+    }
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    const finish = () => {
+      if (img.naturalWidth > 0) resolve(img);
+      else resolve(null);
+    };
+    img.onload = finish;
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
 }
 
 /**
@@ -115,6 +144,43 @@ function drawAvatarPlaceholder(
   ctx.restore();
 }
 
+/** Foto de perfil en círculo (object-cover) o placeholder si no hay imagen válida. */
+function drawAvatarProfileOrPlaceholder(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  profileImg: HTMLImageElement | null | undefined
+): void {
+  const cx = x + w / 2;
+  const cy = y + w / 2;
+  const r = w / 2;
+  if (profileImg && profileImg.complete && profileImg.naturalWidth > 0) {
+    const iw = profileImg.naturalWidth;
+    const ih = profileImg.naturalHeight;
+    const scale = Math.max(w / iw, w / ih);
+    const dw = iw * scale;
+    const dh = ih * scale;
+    const dx = x + (w - dw) / 2;
+    const dy = y + (w - dh) / 2;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+    ctx.clip();
+    ctx.drawImage(profileImg, 0, 0, iw, ih, dx, dy, dw, dh);
+    ctx.restore();
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.75)";
+    ctx.lineWidth = Math.max(2, w / 80);
+    ctx.stroke();
+    ctx.restore();
+  } else {
+    drawAvatarPlaceholder(ctx, x, y, w);
+  }
+}
+
 /**
  * Combina el stream de pantalla con el de cámara (opcional) o placeholder (avatar).
  * Si no hay cámara ni overlay con avatar, devuelve solo el stream de pantalla.
@@ -172,6 +238,7 @@ export function combineScreenAndCameraStreams(
   const overlayRef = options.overlayRef;
   const overlayStateSnapshot = options.overlayState ?? null;
   const flipCamera = options.flipCamera !== false;
+  const avatarProfileImage = options.avatarProfileImage ?? null;
   const drawFrame = () => {
     const W = ctx.canvas.width;
     const H = ctx.canvas.height;
@@ -215,7 +282,7 @@ export function combineScreenAndCameraStreams(
     const r = w / 2;
 
     if (overlay.isAvatar) {
-      drawAvatarPlaceholder(ctx, x, y, w);
+      drawAvatarProfileOrPlaceholder(ctx, x, y, w, avatarProfileImage);
       return;
     }
 
